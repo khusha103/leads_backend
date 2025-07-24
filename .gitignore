@@ -1,11 +1,13 @@
 # Node modules
 /node_modules
 
-/uploads
+uploads/
 
-/certificate
+certificate/
 
-/index_pause.js
+index_pause.js/
+
+nohup.out/
 
 # Logs
 logs
