@@ -3,6 +3,10 @@
 
 /uploads
 
+/certificate
+
+/index_pause.js
+
 # Logs
 logs
 *.log
