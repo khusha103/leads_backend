@@ -287,4 +287,21 @@ async function startServer() {
   }
 }
 
+
+// Get lead status list
+app.get('/api/lead-statuses', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const [rows] = await dbConnection.execute('SELECT id, status_name FROM ekarigar_leads_status');
+    res.status(200).json({ status: 'success', data: rows });
+  } catch (err) {
+    console.error('Error fetching lead statuses:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
 startServer();
