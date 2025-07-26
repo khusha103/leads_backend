@@ -956,10 +956,36 @@ async function mapFormData(formData) {
 }
 
 
-// Function to get the assigned user based on the selected service
-function getAssignedUser(serviceId) {
-  return new Promise((resolve, reject) => {
-    // Query to find a user assigned to the service and not marked as deleted
+// // Function to get the assigned user based on the selected service
+// function getAssignedUser(serviceId) {
+//   return new Promise((resolve, reject) => {
+//     // Query to find a user assigned to the service and not marked as deleted
+//     const query = `
+//       SELECT id
+//       FROM ekarigar_users
+//       WHERE FIND_IN_SET(?, assigned_services) > 0
+//       AND delete_status = '0'
+//       LIMIT 1
+//     `;
+//     connection.query(query, [serviceId], (err, results) => {
+//       if (err) {
+//         reject(err);
+//       } else if (results.length > 0) {
+//         resolve(results[0].id); // Return the user ID of the first match
+//       } else {
+//         resolve(1); // Default to admin if no active user is found (fallback)
+//       }
+//     });
+//   });
+// }
+
+
+async function getAssignedUser(serviceId) {
+  try {
+    if (!dbConnection) {
+      throw new Error('Database connection not established');
+    }
+
     const query = `
       SELECT id
       FROM ekarigar_users
@@ -967,145 +993,62 @@ function getAssignedUser(serviceId) {
       AND delete_status = '0'
       LIMIT 1
     `;
-    connection.query(query, [serviceId], (err, results) => {
-      if (err) {
-        reject(err);
-      } else if (results.length > 0) {
-        resolve(results[0].id); // Return the user ID of the first match
-      } else {
-        resolve(1); // Default to admin if no active user is found (fallback)
-      }
-    });
-  });
+    const [rows] = await dbConnection.execute(query, [serviceId]);
+
+    if (rows.length > 0) {
+      return rows[0].id; // Return the user ID of the first match
+    }
+    return 1; // Default to admin if no active user is found (fallback)
+  } catch (err) {
+    console.error('Error fetching assigned user:', err);
+    throw err; // Re-throw the error for the caller to handle
+  }
 }
 
 
 
 
-app.all('/form',function(req, res){
-// res.sendFile(__dirname+"/form.html");
-res.setHeader('Content-Type', 'text/plain');
-res.setHeader('Access-Control-Allow-Origin', '*'); //config.allowedDomains
-res.setHeader('Access-Control-Allow-Credentials', true);
-res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, X-Requested-By');
-res.setHeader('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
-connection.query('select * from products',(err, rows, fields)=>{
-  if (!err) 
+// app.all('/form',function(req, res){
+// // res.sendFile(__dirname+"/form.html");
+// res.setHeader('Content-Type', 'text/plain');
+// res.setHeader('Access-Control-Allow-Origin', '*'); //config.allowedDomains
+// res.setHeader('Access-Control-Allow-Credentials', true);
+// res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, X-Requested-By');
+// res.setHeader('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+// connection.query('select * from products',(err, rows, fields)=>{
+//   if (!err) 
 
-  res.send(rows);
-  else{
-    console.log(err);
+//   res.send(rows);
+//   else{
+//     console.log(err);
+//   }
+// });
+// });
+
+app.all('/api/form', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    // Set CORS headers
+    res.setHeader('Content-Type', 'text/plain');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, X-Requested-By');
+    res.setHeader('Access-Control-Allow-Methods', 'PUT, GET, POST, DELETE, OPTIONS');
+
+    const [rows] = await dbConnection.execute('SELECT * FROM products');
+    res.status(200).json({ status: 'success', data: rows });
+  } catch (err) {
+    console.error('Error fetching products:', err);
+    res.status(500).json({ error: 'Internal server error' });
   }
-});
 });
 
 //--------------------queries start-----------------
 
 
-// app.get('/api/recentleads', (req, res) => {
-//   // Get user_id from request headers
-//   const userId = req.headers['user-id'];
-
-//   if (!userId) {
-//     return res.status(400).json({
-//       success: false,
-//       message: 'User ID is required',
-//     });
-//   }
-
-//   // First, fetch the role_id for the given user_id from the ekarigar_users table
-//   const roleQuery = 'SELECT role_id FROM ekarigar_users WHERE id = ? AND delete_status = "0"';
-
-//   connection.query(roleQuery, [userId], (error, results) => {
-//     if (error) {
-//       console.error('Error fetching role_id:', error);
-//       return res.status(500).json({
-//         success: false,
-//         message: 'Database query failed while fetching role_id',
-//       });
-//     }
-
-//     if (results.length === 0) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'User not found or user is deleted',
-//       });
-//     }
-
-//     const roleId = results[0].role_id;
-
-//     // Now, based on the role_id, we can proceed with fetching leads
-//     let query = `
-//       SELECT name, email AS website, mobile_number AS mobile, status
-//       FROM ekarigar_leads
-//     `;
-
-//     // If the user is an admin (role_id = 1), show all leads
-//     if (roleId === 1) {  // Admin role
-//       query += 'ORDER BY created_at DESC LIMIT 5';
-//     } else {
-//       // If the user is not an admin, show only leads assigned to the user
-//       query += 'WHERE assigned_to = ? ORDER BY created_at DESC LIMIT 5';
-//     }
-
-//     // Execute the query to fetch the leads
-//     connection.query(query, [userId], (error, results) => {
-//       if (error) {
-//         console.error('Error fetching recent leads:', error);
-//         return res.status(500).json({
-//           success: false,
-//           message: 'Database query failed while fetching recent leads',
-//         });
-//       }
-
-//       const formattedResults = results.map((lead) => ({
-//         name: lead.name,
-//         website: lead.website,
-//         mobile: lead.mobile,
-//         status: lead.status,
-//       }));
-
-//       res.json({
-//         success: true,
-//         message: 'Recent leads fetched successfully',
-//         data: formattedResults,
-//       });
-//     });
-//   });
-// });
-
-
-//---------------------------------fb leads integration code start----------------------------------- 
-
-
-// Webhook verification (GET request)
-// app.get('/webhook', (req, res) => {
-//   const mode = req.query['hub.mode'];
-//   const token = req.query['hub.verify_token'];
-//   const challenge = req.query['hub.challenge'];
-
-//   if (mode === 'subscribe' && token === '12345') {
-//     console.log('Webhook verified');
-//     res.status(200).send(challenge);
-//   } else {
-//     res.status(403).send('Forbidden');
-//   }
-// });
-
-// app.get('/webhook', (req, res) => {
-//   console.log('Webhook GET received:', req.query);
-//   const mode = req.query['hub.mode'];
-//   const token = req.query['hub.verify_token'];
-//   const challenge = req.query['hub.challenge'];
-
-//   if (mode === 'subscribe' && token === VERIFY_TOKEN) {
-//     console.log('Webhook verified, challenge:', challenge);
-//     res.status(200).send(challenge);
-//   } else {
-//     console.log('Verification failed, mode:', mode, 'token:', token);
-//     res.status(403).json({ error: 'Verification failed' });
-//   }
-// });
 
 //not configure code
 app.get('/webhook', (req, res) => {
@@ -1123,38 +1066,37 @@ app.get('/webhook', (req, res) => {
   }
 });
 
-// app.post('/webhook_test', async (req, res) => {
-//     const payload = req.body;
-//     console.log(payload);
-// }
+
+
 // app.post('/api/fb_leads_save', async (req, res) => {
 //   try {
 //     const payload = req.body;
     
-//     console.log(payload);
+//     // console.log(payload);
     
-//     // Check if leadgen_id already exists
-//     // const leadgenId = payload.entry[0].changes[0].value.leadgen_id;
-//     // const [existing] = await pool.query('SELECT id FROM ekarigar_leads_dummy WHERE leadgen_id = ?', [leadgenId]);
-    
-//     // if (existing.length > 0) {
-//     //   return res.status(400).json({ error: 'Lead with this leadgen_id already exists' });
+//     // Check form_id
+//     const formId = payload.form_id;
+//         // console.log("ekreps formid",formId);
+//     //     529677880213221
+//     //     1343440076956786
+//     // if (formId !== '637356575939309') {
+//     //   return res.status(400).json({ error: 'Invalid form_id' });
 //     // }
     
-     
-//     // Check form_id
-//     const formId = payload.entry[0].changes[0].value.form_id;
-//     if (formId !== '637356575939309') {
+//     const allowedFormIds = ['637356575939309', '529677880213221', '1343440076956786'];
+
+//     if (!allowedFormIds.includes(formId)) {
 //       return res.status(400).json({ error: 'Invalid form_id' });
 //     }
 
+
 //     // Map payload to lead
 //     const mappedLead = mapPayloadToLead(payload);
-//     console.log("MAPPED DATA",mappedLead);
+//     console.log("MAPPED DATA", mappedLead);
 
 //     // Insert into database
 //     const query = `
-//       INSERT INTO ekarigar_leads_dummy (
+//       INSERT INTO ekarigar_leads (
 //         assigned_to, status, name, mobile_number, email, city, website_type, 
 //         industry_type, contact_preference, preferred_date, preferred_time, 
 //         requirements, lead_source, checkbox_ids, created_at, updated_at
@@ -1177,7 +1119,6 @@ app.get('/webhook', (req, res) => {
 //       mappedLead.checkbox_ids,
 //       mappedLead.created_at,
 //       mappedLead.updated_at
-      
 //     ];
 
 //     await connection.query(query, values);
@@ -1191,29 +1132,26 @@ app.get('/webhook', (req, res) => {
 
 app.post('/api/fb_leads_save', async (req, res) => {
   try {
-    const payload = req.body;
-    
-    // console.log(payload);
-    
-    // Check form_id
-    const formId = payload.form_id;
-        // console.log("ekreps formid",formId);
-    //     529677880213221
-    //     1343440076956786
-    // if (formId !== '637356575939309') {
-    //   return res.status(400).json({ error: 'Invalid form_id' });
-    // }
-    
-    const allowedFormIds = ['637356575939309', '529677880213221', '1343440076956786'];
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
 
+    const payload = req.body;
+
+    // Validate form_id
+    const formId = payload.form_id;
+    const allowedFormIds = ['637356575939309', '529677880213221', '1343440076956786'];
     if (!allowedFormIds.includes(formId)) {
       return res.status(400).json({ error: 'Invalid form_id' });
     }
 
-
     // Map payload to lead
     const mappedLead = mapPayloadToLead(payload);
-    console.log("MAPPED DATA", mappedLead);
+    console.log('MAPPED DATA', mappedLead);
+
+    // Get assigned user based on serviceId (assuming it's in mappedLead)
+    const serviceId = mappedLead.serviceId; // Adjust based on actual payload structure
+    const assignedUserId = await getAssignedUser(serviceId);
 
     // Insert into database
     const query = `
@@ -1224,7 +1162,7 @@ app.post('/api/fb_leads_save', async (req, res) => {
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
     const values = [
-      mappedLead.assigned_to,
+      assignedUserId, // Use the dynamically fetched user ID
       mappedLead.status,
       mappedLead.name,
       mappedLead.mobile_number,
@@ -1242,57 +1180,124 @@ app.post('/api/fb_leads_save', async (req, res) => {
       mappedLead.updated_at
     ];
 
-    await connection.query(query, values);
+    await dbConnection.execute(query, values);
 
-    res.status(200).json({ message: 'Lead saved successfully' });
-  } catch (error) {
-    console.error('Error processing webhook:', error);
+    res.status(200).json({ status: 'success', message: 'Lead saved successfully' });
+  } catch (err) {
+    console.error('Error processing webhook:', err);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
 
 
-
-
 //---------------------------------fb leads integration code end----------------------------------- 
 
 
-app.get('/api/recentleads', (req, res) => {
-  // Get user_id from request headers
-  const userId = req.headers['user-id'];
+// app.get('/api/recentleads', (req, res) => {
+//   // Get user_id from request headers
+//   const userId = req.headers['user-id'];
 
-  if (!userId) {
-    return res.status(400).json({
-      success: false,
-      message: 'User ID is required',
-    });
-  }
+//   if (!userId) {
+//     return res.status(400).json({
+//       success: false,
+//       message: 'User ID is required',
+//     });
+//   }
 
-  // Fetch the role_id for the given user_id from the ekarigar_users table
-  const roleQuery = 'SELECT role_id FROM ekarigar_users WHERE id = ? AND delete_status = "0"';
+//   // Fetch the role_id for the given user_id from the ekarigar_users table
+//   const roleQuery = 'SELECT role_id FROM ekarigar_users WHERE id = ? AND delete_status = "0"';
 
-  connection.query(roleQuery, [userId], (error, results) => {
-    if (error) {
-      console.error('Error fetching role_id:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Database query failed while fetching role_id',
-      });
+//   connection.query(roleQuery, [userId], (error, results) => {
+//     if (error) {
+//       console.error('Error fetching role_id:', error);
+//       return res.status(500).json({
+//         success: false,
+//         message: 'Database query failed while fetching role_id',
+//       });
+//     }
+
+//     if (results.length === 0) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'User not found or user is deleted',
+//       });
+//     }
+
+//     const roleId = results[0].role_id;
+
+//     // Base query with JOIN to fetch status name
+//     let query = `
+//       SELECT 
+//       l.id,
+//         l.name, 
+//         l.email AS website, 
+//         l.mobile_number AS mobile, 
+//         s.status_name AS status
+//       FROM ekarigar_leads l
+//       INNER JOIN ekarigar_leads_status s ON l.status = s.id
+//     `;
+
+//     // If the user is an admin (role_id = 1), show all leads
+//     if (roleId === 1) { // Admin role
+//       query += 'ORDER BY l.created_at DESC LIMIT 5';
+//     } else {
+//       // If the user is not an admin, show only leads assigned to the user
+//       query += 'WHERE l.assigned_to = ? ORDER BY l.created_at DESC LIMIT 5';
+//     }
+
+//     // Execute the query to fetch the leads
+//     connection.query(query, [roleId === 1 ? [] : userId], (error, results) => {
+//       if (error) {
+//         console.error('Error fetching recent leads:', error);
+//         return res.status(500).json({
+//           success: false,
+//           message: 'Database query failed while fetching recent leads',
+//         });
+//       }
+
+//       const formattedResults = results.map((lead) => ({
+//         id:lead.id,
+//         name: lead.name,
+//         website: lead.website,
+//         mobile: lead.mobile,
+//         status: lead.status,
+//       }));
+
+//       res.json({
+//         success: true,
+//         message: 'Recent leads fetched successfully',
+//         data: formattedResults,
+//       });
+//     });
+//   });
+// });
+
+app.get('/api/recentleads', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found or user is deleted',
-      });
+    // Get user_id from request headers
+    const userId = req.headers['user-id'];
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
     }
 
-    const roleId = results[0].role_id;
+    // Fetch the role_id for the given user_id
+    const roleQuery = 'SELECT role_id FROM ekarigar_users WHERE id = ? AND delete_status = "0"';
+    const [roleResults] = await dbConnection.execute(roleQuery, [userId]);
+
+    if (roleResults.length === 0) {
+      return res.status(404).json({ error: 'User not found or user is deleted' });
+    }
+
+    const roleId = roleResults[0].role_id;
 
     // Base query with JOIN to fetch status name
     let query = `
       SELECT 
-      l.id,
+        l.id,
         l.name, 
         l.email AS website, 
         l.mobile_number AS mobile, 
@@ -1300,192 +1305,43 @@ app.get('/api/recentleads', (req, res) => {
       FROM ekarigar_leads l
       INNER JOIN ekarigar_leads_status s ON l.status = s.id
     `;
+    let queryParams = [];
 
     // If the user is an admin (role_id = 1), show all leads
-    if (roleId === 1) { // Admin role
-      query += 'ORDER BY l.created_at DESC LIMIT 5';
+    if (roleId === 1) {
+      query += ' ORDER BY l.created_at DESC LIMIT 5';
     } else {
       // If the user is not an admin, show only leads assigned to the user
-      query += 'WHERE l.assigned_to = ? ORDER BY l.created_at DESC LIMIT 5';
+      query += ' WHERE l.assigned_to = ? ORDER BY l.created_at DESC LIMIT 5';
+      queryParams = [userId];
     }
 
     // Execute the query to fetch the leads
-    connection.query(query, [roleId === 1 ? [] : userId], (error, results) => {
-      if (error) {
-        console.error('Error fetching recent leads:', error);
-        return res.status(500).json({
-          success: false,
-          message: 'Database query failed while fetching recent leads',
-        });
-      }
+    const [results] = await dbConnection.execute(query, queryParams);
 
-      const formattedResults = results.map((lead) => ({
-        id:lead.id,
-        name: lead.name,
-        website: lead.website,
-        mobile: lead.mobile,
-        status: lead.status,
-      }));
+    // Format results to match the original structure
+    const formattedResults = results.map((lead) => ({
+      id: lead.id,
+      name: lead.name,
+      website: lead.website,
+      mobile: lead.mobile,
+      status: lead.status,
+    }));
 
-      res.json({
-        success: true,
-        message: 'Recent leads fetched successfully',
-        data: formattedResults,
-      });
+    res.status(200).json({
+      status: 'success',
+      message: 'Recent leads fetched successfully',
+      data: formattedResults,
     });
-  });
+  } catch (err) {
+    console.error('Error fetching recent leads:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
 
-// //apileads count
-// app.get('/api/leadcounts', (req, res) => {
-//   const query = `
-//     SELECT 
-//       status, COUNT(*) as count
-//     FROM 
-//       ekarigar_leads
-//     GROUP BY 
-//       status
-//   `;
-
-//   connection.query(query, (error, results) => {
-//     if (error) {
-//       console.error('Error fetching lead counts:', error);
-//       return res.status(500).json({
-//         success: false,
-//         message: 'Database query failed',
-//         error: error.message,
-//       });
-//     }
-
-//     // Transform results into a structured response
-//     const counts = {
-//       total: results.reduce((sum, row) => sum + row.count, 0), // Sum of all leads
-//       pending: results.find((row) => row.status === 'Pending')?.count || 0,
-//       converted: results.find((row) => row.status === 'Converted')?.count || 0,
-//       lost: results.find((row) => row.status === 'Lost')?.count || 0,
-//     };
-
-//     res.json({
-//       success: true,
-//       message: 'Lead counts fetched successfully',
-//       data: counts,
-//     });
-//   });
-// });
-
-
-// app.get('/api/leadcounts_user/:userId', (req, res) => {
-//   const userId = req.params.userId;
-
-//   // First fetch user's assigned services
-//   const userQuery = `
-//     SELECT assigned_services 
-//     FROM ekarigar_users 
-//     WHERE id = ? AND delete_status = '0'
-//   `;
-
-//   connection.query(userQuery, [userId], (userError, userResults) => {
-//     if (userError) {
-//       console.error('Error fetching user:', userError);
-//       return res.status(500).json({
-//         success: false,
-//         message: 'Database query failed',
-//         error: userError.message,
-//       });
-//     }
-
-//     if (!userResults.length) {
-//       return res.status(404).json({
-//         success: false,
-//         message: 'User not found or inactive',
-//       });
-//     }
-
-//     const assignedServices = userResults[0].assigned_services;
-
-//     // If user has no assigned services, return zero counts
-//     if (!assignedServices) {
-//       return res.json({
-//         success: true,
-//         message: 'No services assigned to user',
-//         data: {
-//           total: 0,
-//           statuses: []
-//         }
-//       });
-//     }
-
-//     // Now fetch lead counts for this user's services
-//     const leadCountQuery = `
-//       SELECT 
-//         s.id AS status_id, 
-//         s.status_name,
-//         COUNT(DISTINCT CASE 
-//           WHEN FIND_IN_SET(?, l.assigned_to) 
-//           AND EXISTS (
-//             SELECT 1 
-//             FROM (
-//               SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(?, ',', numbers.n), ',', -1) service_id
-//               FROM (
-//                 SELECT a.N + b.N * 10 + 1 n
-//                 FROM 
-//                   (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) a,
-//                   (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) b
-//                 ORDER BY n
-//               ) numbers
-//               WHERE numbers.n <= 1 + (LENGTH(?) - LENGTH(REPLACE(?, ',', '')))
-//             ) services
-//             WHERE FIND_IN_SET(services.service_id, l.website_type)
-//           )
-//           THEN l.id 
-//           ELSE NULL 
-//         END) AS count
-//       FROM 
-//         ekarigar_leads_status s
-//         LEFT JOIN ekarigar_leads l ON s.id = l.status
-//       GROUP BY 
-//         s.id, 
-//         s.status_name
-//       ORDER BY 
-//         s.id ASC
-//     `;
-
-//     connection.query(
-//       leadCountQuery, 
-//       [userId, assignedServices, assignedServices, assignedServices],
-//       (error, results) => {
-//         if (error) {
-//           console.error('Error fetching lead counts:', error);
-//           return res.status(500).json({
-//             success: false,
-//             message: 'Database query failed',
-//             error: error.message,
-//           });
-//         }
-
-//         // Transform results into response format
-//         const counts = {
-//           total: results.reduce((sum, row) => sum + row.count, 0),
-//           statuses: results.map((row) => ({
-//             id: row.status_id,
-//             name: row.status_name,
-//             count: row.count,
-//           })),
-//         };
-
-//         res.json({
-//           success: true,
-//           message: 'Lead counts fetched successfully',
-//           data: counts,
-//         });
-//       }
-//     );
-//   });
-// });
-
-// app.get('/api/leadcounts_user/:userId', (req, res) => {
+// app.get('/api/leadcounts_user_pause/:userId', (req, res) => {
 //   const userId = req.params.userId;
 
 //   // First fetch user's assigned services and role_id
@@ -1514,11 +1370,32 @@ app.get('/api/recentleads', (req, res) => {
 
 //     const { assigned_services, role_id } = userResults[0];
 
-//     // If role_id is 1, fetch all data
+//     // Query customization based on userId
 //     let leadCountQuery;
 //     let queryParams;
 
-//     if (role_id === 1) {
+   
+    
+//     if (userId == 6) {
+//   leadCountQuery = `
+//     SELECT 
+//       s.id AS status_id, 
+//       s.status_name,
+//       COUNT(l.id) AS count
+//     FROM 
+//       ekarigar_leads_status s
+//       LEFT JOIN ekarigar_leads l ON s.id = l.status AND l.assigned_to = ?
+//     GROUP BY 
+//       s.id, 
+//       s.status_name
+//     ORDER BY 
+//       s.id ASC
+//   `;
+//   queryParams = [userId];
+// }
+
+//     else if (role_id === 1) {
+//         //   if (role_id === 1) {
 //       leadCountQuery = `
 //         SELECT 
 //           s.id AS status_id, 
@@ -1552,7 +1429,7 @@ app.get('/api/recentleads', (req, res) => {
 //                     (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) b
 //                   ORDER BY n
 //                 ) numbers
-//                 WHERE numbers.n <= 1 + (LENGTH(?) - LENGTH(REPLACE(?, ',', '')))
+//                 WHERE numbers.n <= 1 + (LENGTH(?) - LENGTH(REPLACE(?, ',', '')) )
 //               ) services
 //               WHERE FIND_IN_SET(services.service_id, l.website_type)
 //             )
@@ -1606,78 +1483,52 @@ app.get('/api/recentleads', (req, res) => {
 //   });
 // });
 
-app.get('/api/leadcounts_user_pause/:userId', (req, res) => {
-  const userId = req.params.userId;
-
-  // First fetch user's assigned services and role_id
-  const userQuery = `
-    SELECT assigned_services, role_id 
-    FROM ekarigar_users 
-    WHERE id = ? AND delete_status = '0'
-  `;
-
-  connection.query(userQuery, [userId], (userError, userResults) => {
-    if (userError) {
-      console.error('Error fetching user:', userError);
-      return res.status(500).json({
-        success: false,
-        message: 'Database query failed',
-        error: userError.message,
-      });
+app.get('/api/leadcounts_user_pause/:userId', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
 
+    const userId = req.params.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    // Fetch user's assigned services and role_id
+    const userQuery = `
+      SELECT assigned_services, role_id 
+      FROM ekarigar_users 
+      WHERE id = ? AND delete_status = '0'
+    `;
+    const [userResults] = await dbConnection.execute(userQuery, [userId]);
+
     if (!userResults.length) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found or inactive',
-      });
+      return res.status(404).json({ error: 'User not found or inactive' });
     }
 
     const { assigned_services, role_id } = userResults[0];
 
-    // Query customization based on userId
+    // Query customization based on userId and role_id
     let leadCountQuery;
-    let queryParams;
+    let queryParams = [];
 
-    // if (userId == 6) {
-    //   leadCountQuery = `
-    //     SELECT 
-    //       s.id AS status_id, 
-    //       s.status_name,
-    //       COUNT(l.id) AS count
-    //     FROM 
-    //       ekarigar_leads_status s
-    //       LEFT JOIN ekarigar_leads l ON s.id = l.status
-    //     WHERE l.id IS NOT NULL AND l.assigned_to = ?
-    //     GROUP BY 
-    //       s.id, 
-    //       s.status_name
-    //     ORDER BY 
-    //       s.id ASC
-    //   `;
-    //   queryParams = [userId];
-    // }
-    
     if (userId == 6) {
-  leadCountQuery = `
-    SELECT 
-      s.id AS status_id, 
-      s.status_name,
-      COUNT(l.id) AS count
-    FROM 
-      ekarigar_leads_status s
-      LEFT JOIN ekarigar_leads l ON s.id = l.status AND l.assigned_to = ?
-    GROUP BY 
-      s.id, 
-      s.status_name
-    ORDER BY 
-      s.id ASC
-  `;
-  queryParams = [userId];
-}
-
-    else if (role_id === 1) {
-        //   if (role_id === 1) {
+      leadCountQuery = `
+        SELECT 
+          s.id AS status_id, 
+          s.status_name,
+          COUNT(l.id) AS count
+        FROM 
+          ekarigar_leads_status s
+          LEFT JOIN ekarigar_leads l ON s.id = l.status AND l.assigned_to = ?
+        GROUP BY 
+          s.id, 
+          s.status_name
+        ORDER BY 
+          s.id ASC
+      `;
+      queryParams = [userId];
+    } else if (role_id === 1) {
       leadCountQuery = `
         SELECT 
           s.id AS status_id, 
@@ -1711,7 +1562,7 @@ app.get('/api/leadcounts_user_pause/:userId', (req, res) => {
                     (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) b
                   ORDER BY n
                 ) numbers
-                WHERE numbers.n <= 1 + (LENGTH(?) - LENGTH(REPLACE(?, ',', '')) )
+                WHERE numbers.n <= 1 + (LENGTH(?) - LENGTH(REPLACE(?, ',', '')))
               ) services
               WHERE FIND_IN_SET(services.service_id, l.website_type)
             )
@@ -1729,161 +1580,46 @@ app.get('/api/leadcounts_user_pause/:userId', (req, res) => {
       `;
       queryParams = [userId, assigned_services, assigned_services, assigned_services];
     } else {
-      return res.json({
-        success: true,
-        message: 'No services assigned to user',
-        data: { total: 0, statuses: [] },
-      });
-    }
-
-    connection.query(leadCountQuery, queryParams, (error, results) => {
-      if (error) {
-        console.error('Error fetching lead counts:', error);
-        return res.status(500).json({
-          success: false,
-          message: 'Database query failed',
-          error: error.message,
-        });
-      }
-
-      // Transform results into response format
-      const counts = {
-        total: results.reduce((sum, row) => sum + row.count, 0),
-        statuses: results.map((row) => ({
-          id: row.status_id,
-          name: row.status_name,
-          count: row.count,
-        })),
-      };
-
-      res.json({
-        success: true,
-        message: 'Lead counts fetched successfully',
-        data: counts,
-      });
-    });
-  });
-});
-
-
-
-app.get('/api/leadcounts_user/:userId', (req, res) => {
-  const userId = req.params.userId;
-
-  // First fetch user's assigned services and role_id
-  const userQuery = `
-    SELECT assigned_services, role_id 
-    FROM ekarigar_users 
-    WHERE id = ? AND delete_status = '0'
-  `;
-
-  connection.query(userQuery, [userId], (userError, userResults) => {
-    if (userError) {
-      console.error('Error fetching user:', userError);
-      return res.status(500).json({
-        success: false,
-        message: 'Database query failed',
-        error: userError.message,
-      });
-    }
-
-    if (!userResults.length) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found or inactive',
-      });
-    }
-
-    const { assigned_services, role_id } = userResults[0];
-
-    let leadCountQuery;
-    let queryParams;
-
-    // If admin (role_id = 1), return all statuses and counts
-    if (role_id === 1) {
-      leadCountQuery = `
-        SELECT 
-          s.id AS status_id, 
-          s.status_name,
-          COUNT(l.id) AS count
-        FROM 
-          ekarigar_leads_status s
-        LEFT JOIN 
-          ekarigar_leads l ON s.id = l.status
-        GROUP BY 
-          s.id, 
-          s.status_name
-        ORDER BY 
-          s.id ASC
-      `;
-      queryParams = [];
-    }
-    // If regular user with assigned services (role_id = 2)
-    // else if (role_id === 2 && assigned_services) {
-    else if (role_id === 2) {
-      leadCountQuery = `
-        SELECT 
-          s.id AS status_id,
-          s.status_name,
-          COUNT(l.id) AS count
-        FROM 
-          ekarigar_leads_status s
-        LEFT JOIN 
-          ekarigar_leads l ON l.status = s.id 
-          AND FIND_IN_SET(?, l.assigned_to)
-        GROUP BY 
-          s.id, s.status_name
-        ORDER BY 
-          s.id ASC
-      `;
-      queryParams = [userId];
-    } else {
-      return res.json({
-        success: true,
+      return res.status(200).json({
+        status: 'success',
         message: 'No services assigned to user',
         data: { total: 0, statuses: [] },
       });
     }
 
     // Execute the lead count query
-    connection.query(leadCountQuery, queryParams, (error, results) => {
-      if (error) {
-        console.error('Error fetching lead counts:', error);
-        return res.status(500).json({
-          success: false,
-          message: 'Database query failed',
-          error: error.message,
-        });
-      }
+    const [results] = await dbConnection.execute(leadCountQuery, queryParams);
 
-      // Transform the results into response format
-      const counts = {
-        total: results.reduce((sum, row) => sum + (row.count || 0), 0),
-        statuses: results.map((row) => ({
-          id: row.status_id,
-          name: row.status_name,
-          count: row.count || 0,
-        })),
-      };
+    // Transform results into response format
+    const counts = {
+      total: results.reduce((sum, row) => sum + Number(row.count), 0),
+      statuses: results.map((row) => ({
+        id: row.status_id,
+        name: row.status_name,
+        count: Number(row.count),
+      })),
+    };
 
-      res.json({
-        success: true,
-        message: 'Lead counts fetched successfully',
-        data: counts,
-      });
+    res.status(200).json({
+      status: 'success',
+      message: 'Lead counts fetched successfully',
+      data: counts,
     });
-  });
+  } catch (err) {
+    console.error('Error fetching lead counts:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
+///--------khusha pause------
 
-// API to fetch lead sources based on user ID
-// app.get('/api/leadsources_user/:userId', (req, res) => {
+// app.get('/api/leadcounts_user/:userId', (req, res) => {
 //   const userId = req.params.userId;
 
-//   // Query to fetch the user's assigned services
+//   // First fetch user's assigned services and role_id
 //   const userQuery = `
-//     SELECT assigned_services 
+//     SELECT assigned_services, role_id 
 //     FROM ekarigar_users 
 //     WHERE id = ? AND delete_status = '0'
 //   `;
@@ -1905,10 +1641,259 @@ app.get('/api/leadcounts_user/:userId', (req, res) => {
 //       });
 //     }
 
-//     const assignedServices = userResults[0].assigned_services;
+//     const { assigned_services, role_id } = userResults[0];
 
-//     // If user has no assigned services, return zero counts
-//     if (!assignedServices) {
+//     let leadCountQuery;
+//     let queryParams;
+
+//     // If admin (role_id = 1), return all statuses and counts
+//     if (role_id === 1) {
+//       leadCountQuery = `
+//         SELECT 
+//           s.id AS status_id, 
+//           s.status_name,
+//           COUNT(l.id) AS count
+//         FROM 
+//           ekarigar_leads_status s
+//         LEFT JOIN 
+//           ekarigar_leads l ON s.id = l.status
+//         GROUP BY 
+//           s.id, 
+//           s.status_name
+//         ORDER BY 
+//           s.id ASC
+//       `;
+//       queryParams = [];
+//     }
+//     // If regular user with assigned services (role_id = 2)
+//     // else if (role_id === 2 && assigned_services) {
+//     else if (role_id === 2) {
+//       leadCountQuery = `
+//         SELECT 
+//           s.id AS status_id,
+//           s.status_name,
+//           COUNT(l.id) AS count
+//         FROM 
+//           ekarigar_leads_status s
+//         LEFT JOIN 
+//           ekarigar_leads l ON l.status = s.id 
+//           AND FIND_IN_SET(?, l.assigned_to)
+//         GROUP BY 
+//           s.id, s.status_name
+//         ORDER BY 
+//           s.id ASC
+//       `;
+//       queryParams = [userId];
+//     } else {
+//       return res.json({
+//         success: true,
+//         message: 'No services assigned to user',
+//         data: { total: 0, statuses: [] },
+//       });
+//     }
+
+//     // Execute the lead count query
+//     connection.query(leadCountQuery, queryParams, (error, results) => {
+//       if (error) {
+//         console.error('Error fetching lead counts:', error);
+//         return res.status(500).json({
+//           success: false,
+//           message: 'Database query failed',
+//           error: error.message,
+//         });
+//       }
+
+//       // Transform the results into response format
+//       const counts = {
+//         total: results.reduce((sum, row) => sum + (row.count || 0), 0),
+//         statuses: results.map((row) => ({
+//           id: row.status_id,
+//           name: row.status_name,
+//           count: row.count || 0,
+//         })),
+//       };
+
+//       res.json({
+//         success: true,
+//         message: 'Lead counts fetched successfully',
+//         data: counts,
+//       });
+//     });
+//   });
+// });
+
+app.get('/api/leadcounts_user/:userId', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const userId = req.params.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const userQuery = `
+      SELECT assigned_services, role_id 
+      FROM ekarigar_users 
+      WHERE id = ? AND delete_status = '0'
+    `;
+    const [userResults] = await dbConnection.execute(userQuery, [userId]);
+
+    if (!userResults.length) {
+      return res.status(404).json({ error: 'User not found or inactive' });
+    }
+
+    const { assigned_services, role_id } = userResults[0];
+
+    let leadCountQuery;
+    let queryParams = [];
+
+    if (role_id === 1) {
+      leadCountQuery = `
+        SELECT 
+          s.id AS status_id, 
+          s.status_name,
+          COUNT(l.id) AS count
+        FROM 
+          ekarigar_leads_status s
+        LEFT JOIN 
+          ekarigar_leads l ON s.id = l.status
+        GROUP BY 
+          s.id, 
+          s.status_name
+        ORDER BY 
+          s.id ASC
+      `;
+      queryParams = [];
+    } else if (role_id === 2) {
+      leadCountQuery = `
+        SELECT 
+          s.id AS status_id,
+          s.status_name,
+          COUNT(l.id) AS count
+        FROM 
+          ekarigar_leads_status s
+        LEFT JOIN 
+          ekarigar_leads l ON l.status = s.id 
+          AND FIND_IN_SET(?, l.assigned_to)
+        GROUP BY 
+          s.id, s.status_name
+        ORDER BY 
+          s.id ASC
+      `;
+      queryParams = [userId];
+    } else {
+      return res.status(200).json({
+        status: 'success',
+        message: 'No services assigned to user',
+        data: { total: 0, statuses: [] },
+      });
+    }
+
+    const [results] = await dbConnection.execute(leadCountQuery, queryParams);
+
+    const counts = {
+      total: results.reduce((sum, row) => sum + Number(row.count), 0),
+      statuses: results.map((row) => ({
+        id: row.status_id,
+        name: row.status_name,
+        count: Number(row.count),
+      })),
+    };
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Lead counts fetched successfully',
+      data: counts,
+    });
+  } catch (err) {
+    console.error('Error fetching lead counts:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// app.get('/api/leadsources_user/:userId', (req, res) => {
+//   const userId = req.params.userId;
+
+//   // Query to fetch the user's assigned services and role_id
+//   const userQuery = `
+//     SELECT assigned_services, role_id
+//     FROM ekarigar_users
+//     WHERE id = ? AND delete_status = '0'
+//   `;
+
+//   connection.query(userQuery, [userId], (userError, userResults) => {
+//     if (userError) {
+//       console.error('Error fetching user:', userError);
+//       return res.status(500).json({
+//         success: false,
+//         message: 'Database query failed',
+//         error: userError.message,
+//       });
+//     }
+
+//     if (!userResults.length) {
+//       return res.status(404).json({
+//         success: false,
+//         message: 'User not found or inactive',
+//       });
+//     }
+
+//     const { assigned_services, role_id } = userResults[0];
+
+//     let leadSourceQuery;
+//     let queryParams;
+
+//     if (role_id === 1) {
+//       leadSourceQuery = `
+//         SELECT 
+//           s.source_name AS source,
+//           COUNT(DISTINCT l.id) AS count
+//         FROM 
+//           ekarigar_lead_source s
+//         LEFT JOIN 
+//           ekarigar_leads l ON s.id = l.lead_source
+//         GROUP BY 
+//           s.source_name
+//         ORDER BY 
+//           s.source_name ASC
+//       `;
+//       queryParams = [];
+//     } else if (role_id === 2 && assigned_services) {
+//       leadSourceQuery = `
+//         SELECT 
+//           s.source_name AS source,
+//           COUNT(DISTINCT l.id) AS count
+//         FROM 
+//           ekarigar_lead_source s
+//         LEFT JOIN 
+//           ekarigar_leads l ON s.id = l.lead_source
+//         WHERE 
+//           FIND_IN_SET(?, l.assigned_to)
+//           AND EXISTS (
+//             SELECT 1
+//             FROM (
+//               SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(?, ',', numbers.n), ',', -1) service_id
+//               FROM (
+//                 SELECT a.N + b.N * 10 + 1 n
+//                 FROM 
+//                   (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) a,
+//                   (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) b
+//                 ORDER BY n
+//               ) numbers
+//               WHERE numbers.n <= 1 + (LENGTH(?) - LENGTH(REPLACE(?, ',', '')))
+//             ) services
+//             WHERE FIND_IN_SET(services.service_id, l.website_type)
+//           )
+//         GROUP BY 
+//           s.source_name
+//         ORDER BY 
+//           s.source_name ASC
+//       `;
+//       queryParams = [userId, assigned_services, assigned_services, assigned_services];
+//     } else {
 //       return res.json({
 //         success: true,
 //         message: 'No services assigned to user',
@@ -1916,98 +1901,59 @@ app.get('/api/leadcounts_user/:userId', (req, res) => {
 //       });
 //     }
 
-//     // Query to fetch lead sources specific to the user's assigned services
-//     const leadSourceQuery = `
-//       SELECT 
-//         s.source_name AS source,
-//         COUNT(DISTINCT l.id) AS count
-//       FROM 
-//         ekarigar_lead_source s
-//       LEFT JOIN 
-//         ekarigar_leads l ON s.id = l.lead_source
-//       WHERE 
-//         FIND_IN_SET(?, l.assigned_to) -- Filter leads by user ID
-//         AND EXISTS (
-//           SELECT 1
-//           FROM (
-//             SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(?, ',', numbers.n), ',', -1) service_id
-//             FROM (
-//               SELECT a.N + b.N * 10 + 1 n
-//               FROM 
-//                 (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) a,
-//                 (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) b
-//               ORDER BY n
-//             ) numbers
-//             WHERE numbers.n <= 1 + (LENGTH(?) - LENGTH(REPLACE(?, ',', '')))
-//           ) services
-//           WHERE FIND_IN_SET(services.service_id, l.website_type)
-//         )
-//       GROUP BY 
-//         s.source_name
-//       ORDER BY 
-//         s.source_name ASC
-//     `;
-
-//     connection.query(
-//       leadSourceQuery,
-//       [userId, assignedServices, assignedServices, assignedServices],
-//       (error, results) => {
-//         if (error) {
-//           console.error('Error fetching lead sources:', error);
-//           return res.status(500).json({
-//             success: false,
-//             message: 'Database query failed',
-//             error: error.message,
-//           });
-//         }
-
-//         // Calculate total leads and percentages
-//         const totalLeads = results.reduce((sum, lead) => sum + lead.count, 0);
-//         const formattedResults = results.map((lead) => ({
-//           source: lead.source,
-//           percentage: ((lead.count / totalLeads) * 100).toFixed(2),
-//         }));
-
-//         res.json({
-//           success: true,
-//           message: 'Lead sources fetched successfully',
-//           data: formattedResults,
+//     connection.query(leadSourceQuery, queryParams, (error, results) => {
+//       if (error) {
+//         console.error('Error fetching lead sources:', error);
+//         return res.status(500).json({
+//           success: false,
+//           message: 'Database query failed',
+//           error: error.message,
 //         });
 //       }
-//     );
+
+//       // Calculate total leads and percentages
+//       const totalLeads = results.reduce((sum, lead) => sum + lead.count, 0);
+//       const formattedResults = results.map((lead) => ({
+//         source: lead.source,
+//         percentage: ((lead.count / totalLeads) * 100).toFixed(2),
+//       }));
+
+//       res.json({
+//         success: true,
+//         message: 'Lead sources fetched successfully',
+//         data: formattedResults,
+//       });
+//     });
 //   });
 // });
-app.get('/api/leadsources_user/:userId', (req, res) => {
-  const userId = req.params.userId;
 
-  // Query to fetch the user's assigned services and role_id
-  const userQuery = `
-    SELECT assigned_services, role_id
-    FROM ekarigar_users
-    WHERE id = ? AND delete_status = '0'
-  `;
 
-  connection.query(userQuery, [userId], (userError, userResults) => {
-    if (userError) {
-      console.error('Error fetching user:', userError);
-      return res.status(500).json({
-        success: false,
-        message: 'Database query failed',
-        error: userError.message,
-      });
+app.get('/api/leadsources_user/:userId', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
 
+    const userId = req.params.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
+
+    const userQuery = `
+      SELECT assigned_services, role_id
+      FROM ekarigar_users
+      WHERE id = ? AND delete_status = '0'
+    `;
+    const [userResults] = await dbConnection.execute(userQuery, [userId]);
+
     if (!userResults.length) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found or inactive',
-      });
+      return res.status(404).json({ error: 'User not found or inactive' });
     }
 
     const { assigned_services, role_id } = userResults[0];
 
     let leadSourceQuery;
-    let queryParams;
+    let queryParams = [];
 
     if (role_id === 1) {
       leadSourceQuery = `
@@ -2057,88 +2003,78 @@ app.get('/api/leadsources_user/:userId', (req, res) => {
       `;
       queryParams = [userId, assigned_services, assigned_services, assigned_services];
     } else {
-      return res.json({
-        success: true,
+      return res.status(200).json({
+        status: 'success',
         message: 'No services assigned to user',
         data: [],
       });
     }
 
-    connection.query(leadSourceQuery, queryParams, (error, results) => {
-      if (error) {
-        console.error('Error fetching lead sources:', error);
-        return res.status(500).json({
-          success: false,
-          message: 'Database query failed',
-          error: error.message,
-        });
-      }
+    const [results] = await dbConnection.execute(leadSourceQuery, queryParams);
 
-      // Calculate total leads and percentages
-      const totalLeads = results.reduce((sum, lead) => sum + lead.count, 0);
-      const formattedResults = results.map((lead) => ({
-        source: lead.source,
-        percentage: ((lead.count / totalLeads) * 100).toFixed(2),
-      }));
+    const totalLeads = results.reduce((sum, lead) => sum + Number(lead.count), 0);
+    const formattedResults = results.map((lead) => ({
+      source: lead.source,
+      percentage: totalLeads > 0 ? Number(((lead.count / totalLeads) * 100).toFixed(2)) : 0,
+    }));
 
-      res.json({
-        success: true,
-        message: 'Lead sources fetched successfully',
-        data: formattedResults,
-      });
+    res.status(200).json({
+      status: 'success',
+      message: 'Lead sources fetched successfully',
+      data: formattedResults,
     });
-  });
+  } catch (err) {
+    console.error('Error fetching lead sources:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 
+// app.get('/api/leadcounts', (req, res) => {
+//   const query = `
+//     SELECT 
+//       s.id AS status_id,
+//       s.status_name,
+//       COUNT(l.id) AS count
+//     FROM 
+//       ekarigar_leads_status s
+//     LEFT JOIN 
+//       ekarigar_leads l 
+//     ON 
+//       s.id = l.status
+//     GROUP BY 
+//       s.id, s.status_name
+//     ORDER BY 
+//       s.id ASC;
+//   `;
 
+//   connection.query(query, (error, results) => {
+//     if (error) {
+//       console.error('Error fetching lead counts:', error);
+//       return res.status(500).json({
+//         success: false,
+//         message: 'Database query failed',
+//         error: error.message,
+//       });
+//     }
 
+//     // Transform results into a structured response
+//     const counts = {
+//       total: results.reduce((sum, row) => sum + row.count, 0), // Sum of all leads
+//       statuses: results.map((row) => ({
+//         id: row.status_id,
+//         name: row.status_name,
+//         count: row.count,
+//       })),
+//     };
 
-app.get('/api/leadcounts', (req, res) => {
-  const query = `
-    SELECT 
-      s.id AS status_id,
-      s.status_name,
-      COUNT(l.id) AS count
-    FROM 
-      ekarigar_leads_status s
-    LEFT JOIN 
-      ekarigar_leads l 
-    ON 
-      s.id = l.status
-    GROUP BY 
-      s.id, s.status_name
-    ORDER BY 
-      s.id ASC;
-  `;
-
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error fetching lead counts:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Database query failed',
-        error: error.message,
-      });
-    }
-
-    // Transform results into a structured response
-    const counts = {
-      total: results.reduce((sum, row) => sum + row.count, 0), // Sum of all leads
-      statuses: results.map((row) => ({
-        id: row.status_id,
-        name: row.status_name,
-        count: row.count,
-      })),
-    };
-
-    res.json({
-      success: true,
-      message: 'Lead counts fetched successfully',
-      data: counts,
-    });
-  });
-});
+//     res.json({
+//       success: true,
+//       message: 'Lead counts fetched successfully',
+//       data: counts,
+//     });
+//   });
+// });
 
 
 // // API to fetch lead sources
@@ -2174,39 +2110,87 @@ app.get('/api/leadcounts', (req, res) => {
 // });
 
 // API to fetch lead sources
-app.get('/api/leadsources', (req, res) => {
-  const query = `
-    SELECT 
-      s.source_name AS source, 
-      COUNT(l.lead_source) AS count
-    FROM ekarigar_leads l
-    INNER JOIN ekarigar_lead_source s ON l.lead_source = s.id
-    GROUP BY s.source_name;
-  `;
 
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error fetching lead sources:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Database query failed',
-      });
+
+app.get('/api/leadcounts', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
 
-    // Calculate total leads and percentages
-    const totalLeads = results.reduce((sum, lead) => sum + lead.count, 0);
-    const formattedResults = results.map((lead) => ({
-      source: lead.source,
-      percentage: ((lead.count / totalLeads) * 100).toFixed(2),
-    }));
+    const query = `
+      SELECT 
+        s.id AS status_id,
+        s.status_name,
+        COUNT(l.id) AS count
+      FROM 
+        ekarigar_leads_status s
+      LEFT JOIN 
+        ekarigar_leads l 
+      ON 
+        s.id = l.status
+      GROUP BY 
+        s.id, s.status_name
+      ORDER BY 
+        s.id ASC
+    `;
 
-    res.json({
-      success: true,
-      message: 'Lead sources fetched successfully',
-      data: formattedResults,
+    const [results] = await dbConnection.execute(query);
+
+    const counts = {
+      total: results.reduce((sum, row) => sum + Number(row.count), 0),
+      statuses: results.map((row) => ({
+        id: row.status_id,
+        name: row.status_name,
+        count: Number(row.count),
+      })),
+    };
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Lead counts fetched successfully',
+      data: counts,
     });
-  });
+  } catch (err) {
+    console.error('Error fetching lead counts:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
+
+// app.get('/api/leadsources', (req, res) => {
+//   const query = `
+//     SELECT 
+//       s.source_name AS source, 
+//       COUNT(l.lead_source) AS count
+//     FROM ekarigar_leads l
+//     INNER JOIN ekarigar_lead_source s ON l.lead_source = s.id
+//     GROUP BY s.source_name;
+//   `;
+
+//   connection.query(query, (error, results) => {
+//     if (error) {
+//       console.error('Error fetching lead sources:', error);
+//       return res.status(500).json({
+//         success: false,
+//         message: 'Database query failed',
+//       });
+//     }
+
+//     // Calculate total leads and percentages
+//     const totalLeads = results.reduce((sum, lead) => sum + lead.count, 0);
+//     const formattedResults = results.map((lead) => ({
+//       source: lead.source,
+//       percentage: ((lead.count / totalLeads) * 100).toFixed(2),
+//     }));
+
+//     res.json({
+//       success: true,
+//       message: 'Lead sources fetched successfully',
+//       data: formattedResults,
+//     });
+//   });
+// });
 
 
 // app.get('/api/today-followups', (req, res) => {
@@ -2328,73 +2312,107 @@ app.get('/api/leadsources', (req, res) => {
 //         });
 //     });
 // });
-
-app.get('/api/today-followups', (req, res) => {
-    const userId = req.query.userId; // Get userId from query params
-
-    if (!userId) {
-        return res.status(400).json({
-            success: false,
-            message: 'User ID is required'
-        });
+app.get('/api/leadsources', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
 
-    // Get today's date in Indian Standard Time (IST)
-    const todayIST = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
-
     const query = `
-        SELECT 
-            f.id,
-            f.lead_id,
-            f.description,
-            f.medium,
-            f.attended_by,
-            f.assign_to,
-            f.followup_date,
-            f.followup_doc_description,
-            f.followup_doc,
-            DATE(CONVERT_TZ(STR_TO_DATE(f.followup_date, '%Y-%m-%dT%H:%i'), '+00:00', '+05:30')) as formatted_date
-        FROM 
-            ekarigar_followups f
-        WHERE 
-            DATE(CONVERT_TZ(STR_TO_DATE(f.followup_date, '%Y-%m-%dT%H:%i'), '+00:00', '+05:30')) = ?
-            AND f.attended_by = ?
-        ORDER BY 
-            f.followup_date ASC
+      SELECT 
+        s.source_name AS source, 
+        COUNT(l.lead_source) AS count
+      FROM ekarigar_leads l
+      INNER JOIN ekarigar_lead_source s ON l.lead_source = s.id
+      GROUP BY s.source_name
     `;
 
-    connection.query(query, [todayIST, userId], (error, results) => {
-        if (error) {
-            console.error('Error fetching followups:', error);
-            return res.status(500).json({
-                success: false,
-                message: 'Database query failed',
-                error: error.message
-            });
-        }
+    const [results] = await dbConnection.execute(query);
 
-        const followups = {
-            total: results.length,
-            followups: results.map(row => ({
-                id: row.id,
-                lead_id: row.lead_id,
-                description: row.description,
-                medium: row.medium,
-                attended_by: row.attended_by,
-                assign_to: row.assign_to,
-                followup_date: row.followup_date,
-                followup_doc_description: row.followup_doc_description,
-                followup_doc: row.followup_doc
-            }))
-        };
+    const totalLeads = results.reduce((sum, lead) => sum + Number(lead.count), 0);
+    const formattedResults = results.map((lead) => ({
+      source: lead.source,
+      percentage: totalLeads > 0 ? Number(((lead.count / totalLeads) * 100).toFixed(2)) : 0,
+    }));
 
-        res.json({
-            success: true,
-            message: "Today's followups fetched successfully",
-            data: followups
-        });
+    res.status(200).json({
+      status: 'success',
+      message: 'Lead sources fetched successfully',
+      data: formattedResults,
     });
+  } catch (err) {
+    console.error('Error fetching lead sources:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
+
+// app.get('/api/today-followups', (req, res) => {
+//     const userId = req.query.userId; // Get userId from query params
+
+//     if (!userId) {
+//         return res.status(400).json({
+//             success: false,
+//             message: 'User ID is required'
+//         });
+//     }
+
+//     // Get today's date in Indian Standard Time (IST)
+//     const todayIST = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
+
+//     const query = `
+//         SELECT 
+//             f.id,
+//             f.lead_id,
+//             f.description,
+//             f.medium,
+//             f.attended_by,
+//             f.assign_to,
+//             f.followup_date,
+//             f.followup_doc_description,
+//             f.followup_doc,
+//             DATE(CONVERT_TZ(STR_TO_DATE(f.followup_date, '%Y-%m-%dT%H:%i'), '+00:00', '+05:30')) as formatted_date
+//         FROM 
+//             ekarigar_followups f
+//         WHERE 
+//             DATE(CONVERT_TZ(STR_TO_DATE(f.followup_date, '%Y-%m-%dT%H:%i'), '+00:00', '+05:30')) = ?
+//             AND f.attended_by = ?
+//         ORDER BY 
+//             f.followup_date ASC
+//     `;
+
+//     connection.query(query, [todayIST, userId], (error, results) => {
+//         if (error) {
+//             console.error('Error fetching followups:', error);
+//             return res.status(500).json({
+//                 success: false,
+//                 message: 'Database query failed',
+//                 error: error.message
+//             });
+//         }
+
+//         const followups = {
+//             total: results.length,
+//             followups: results.map(row => ({
+//                 id: row.id,
+//                 lead_id: row.lead_id,
+//                 description: row.description,
+//                 medium: row.medium,
+//                 attended_by: row.attended_by,
+//                 assign_to: row.assign_to,
+//                 followup_date: row.followup_date,
+//                 followup_doc_description: row.followup_doc_description,
+//                 followup_doc: row.followup_doc
+//             }))
+//         };
+
+//         res.json({
+//             success: true,
+//             message: "Today's followups fetched successfully",
+//             data: followups
+//         });
+//     });
+// });
 // API endpoint to transfer wpforms entries to ekarigar_leads
 // app.post('/api/transfer_wpforms_entries', (req, res) => {
 //   const query = `
@@ -2554,201 +2572,265 @@ app.get('/api/today-followups', (req, res) => {
 //   });
 // });
 
-app.post('/api/transfer_wpforms_entries', (req, res) => {
-  const query = `
-    SELECT entry_id, fields, date
-    FROM wpkh_wpforms_entries;
-  `;
 
-  connection.beginTransaction((transactionError) => {
-    if (transactionError) {
-      console.error('Error starting transaction:', transactionError);
-      return res.status(500).json({ status: false, error: 'Failed to start transaction' });
+app.get('/api/today-followups', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
 
-    connection.query(query, (error, results) => {
-      if (error) {
-        console.error('Error fetching entries:', error);
-        connection.rollback(() => {
-          res.status(500).json({ status: false, error: 'Database query failed' });
-        });
-        return;
-      }
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.status(400).json({ error: 'User ID is required' });
+    }
 
-      if (results.length === 0) {
-        connection.rollback(() => {
-          res.json({ status: true, message: 'No entries found for the past month.' });
-        });
-        return;
-      }
+    const todayIST = moment().tz('Asia/Kolkata').format('YYYY-MM-DD');
 
-      // Define the mapping for checkbox options to their respective IDs
-      const checkboxMapping = {
-        "NEED A NEW WEBSITE FOR YOUR BUSINESS?": 1,
-        "WANT TO APPEAR ON TOP OF GOOGLE SEARCH?": 2,
-        "WANT MORE BUSINESS LEADS?": 3,
-        "INCREASE SALES ON YOUR E-COMMERCE WEBSITE?": 4,
-        "WANT TO TAKE YOUR BRAND TO LARGER AUDIENCE?": 5,
-        "LOOKING FOR AUTOMATING YOUR BUSINESS PROCESS?": 6,
-        "SOMETHING ELSE?": 7,
-      };
+    const query = `
+      SELECT 
+        f.id,
+        f.lead_id,
+        f.description,
+        f.medium,
+        f.attended_by,
+        f.assign_to,
+        f.followup_date,
+        f.followup_doc_description,
+        f.followup_doc,
+        DATE(CONVERT_TZ(STR_TO_DATE(f.followup_date, '%Y-%m-%dT%H:%i'), '+00:00', '+05:30')) as formatted_date
+      FROM 
+        ekarigar_followups f
+      WHERE 
+        DATE(CONVERT_TZ(STR_TO_DATE(f.followup_date, '%Y-%m-%dT%H:%i'), '+00:00', '+05:30')) = ?
+        AND f.attended_by = ?
+      ORDER BY 
+        f.followup_date ASC
+    `;
 
-      // Map contactPreference values to IDs
-      const contactPreferenceMapping = {
-        'Call': 1,
-        'Schedule a Video Call': 2,
-        // Add more mappings as needed
-      };
+    const [results] = await dbConnection.execute(query, [todayIST, userId]);
 
-      // Format date to remove milliseconds and make it 'YYYY-MM-DD HH:MM:SS'
-      const formatDate = (date) => {
-        const d = new Date(date);
-        return d.toISOString().slice(0, 19).replace('T', ' '); // Format as 'YYYY-MM-DD HH:MM:SS'
-      };
+    const followups = {
+      total: results.length,
+      followups: results.map(row => ({
+        id: row.id,
+        lead_id: row.lead_id,
+        description: row.description,
+        medium: row.medium,
+        attended_by: row.attended_by,
+        assign_to: row.assign_to,
+        followup_date: row.followup_date,
+        followup_doc_description: row.followup_doc_description,
+        followup_doc: row.followup_doc
+      }))
+    };
 
-      // Function to add minutes to a date
-      const addMinutes = (date, minutes) => {
-        const d = new Date(date);
-        d.setMinutes(d.getMinutes() + minutes); // Add minutes
-        return d;
-      };
-
-      // Process each entry
-      const leadInsertPromises = results.map((row) => {
-        const fields = JSON.parse(row.fields);
-
-        // Map JSON fields to table columns
-        let name = fields['5']?.value || 'Unknown';
-        const mobileNumber = fields['6']?.value || '';
-        const email = fields['7']?.value || '';
-        let city = fields['8']?.value || '';
-        const websiteType = fields['9']?.value || '';
-        const industryType = fields['10']?.value || '';
-        let contactPreference = fields['11']?.value || '';
-        const preferredDate = fields['12']?.date || '';
-        const preferredTime = fields['14']?.value || '';
-        const requirements = '';
-
-        // Replace specific Hindi values with English equivalents
-        if (city === 'मुंबई') {
-          city = 'Mumbai';
-        }
-        if (name === 'प्रल्हाद') {
-          name = 'Pralhad';
-        }
-        if (name === 'सीताराम') {
-          name = 'Sitaram';
-        }
-
-        // Map website_type and industry_type to their IDs
-        const websiteTypeId = websiteType ? serviceMap[websiteType] || 0 : 0; // Default to 0 if empty
-        const industryTypeId = industryType ? industryMap[industryType] || 0 : 0; // Default to 0 if empty
-
-        // Extract selected checkboxes and map to their IDs
-        const checkboxField = fields['2']?.value || ''; // Assuming '2' is the checkbox field
-        const selectedOptions = checkboxField.split('\n'); // Split by newline if options are separated by newline
-
-        const selectedIds = selectedOptions
-          .map(option => checkboxMapping[option]) // Map the option to its ID
-          .filter(id => id !== undefined); // Remove undefined values (in case of invalid options)
-
-        const checkBoxes = selectedIds.join(','); // Join the IDs into a comma-separated string without spaces
-
-        // Map contactPreference to its ID
-        contactPreference = contactPreferenceMapping[contactPreference] || 0; // Default to 0 if no match
-
-        // Use the date field from the wpforms table as created_at and updated_at
-        let createdAt = formatDate(addMinutes(row.date, 30)); // Add 30 minutes to created_at
-        let updatedAt = formatDate(addMinutes(row.date, 30)); // Add 30 minutes to updated_at
-
-        // Function to get the assigned user based on the service type
-        const getAssignedUser = (serviceId) => {
-          return new Promise((resolve, reject) => {
-            const query = `
-              SELECT id
-              FROM ekarigar_users
-              WHERE FIND_IN_SET(?, assigned_services) > 0
-              AND delete_status = '0'  
-              LIMIT 1
-            `;
-            connection.query(query, [serviceId], (err, results) => {
-              if (err) {
-                reject(err);
-              } else if (results.length > 0) {
-                resolve(results[0].id); // Return the user ID of the first match
-              } else {
-                resolve(1); // Default to admin if no active user is found (fallback)
-              }
-            });
-          });
-        };
-
-        // Determine the user to assign based on the service type
-        return getAssignedUser(websiteTypeId)
-          .then((assignedTo) => {
-            const insertQuery = `
-              INSERT INTO ekarigar_leads  (
-                assigned_to, status, name, mobile_number, email, city, website_type, industry_type,
-                contact_preference, preferred_date, preferred_time, requirements, lead_source, created_at, updated_at, checkbox_ids
-              ) VALUES (
-                ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?
-              );
-            `;
-
-            return new Promise((resolve, reject) => {
-              connection.query(
-                insertQuery,
-                [
-                  assignedTo,  // Assigned to dynamic based on service type
-                  name,
-                  mobileNumber,
-                  email,
-                  city,
-                  websiteTypeId, // Store the ID for website_type
-                  industryTypeId, // Store the ID for industry_type
-                  contactPreference,
-                  preferredDate,
-                  preferredTime,
-                  requirements,
-                  createdAt,
-                  updatedAt, // Insert the adjusted updated_at (updated_on)
-                  checkBoxes  // Insert the checkbox IDs here
-                ],
-                (err, result) => {
-                  if (err) {
-                    console.error('Error inserting lead:', err);
-                    return reject(err);
-                  }
-                  resolve(result);
-                }
-              );
-            });
-          });
-      });
-
-      // Execute all insert queries
-      Promise.all(leadInsertPromises)
-        .then(() => {
-          connection.commit((commitError) => {
-            if (commitError) {
-              console.error('Error committing transaction:', commitError);
-              connection.rollback(() => {
-                res.status(500).json({ status: false, error: 'Failed to commit transaction' });
-              });
-              return;
-            }
-            res.json({ status: true, message: 'All leads have been successfully transferred.' });
-          });
-        })
-        .catch((err) => {
-          console.error('Error during lead processing:', err);
-          connection.rollback(() => {
-            res.status(500).json({ status: false, error: 'Failed to transfer all leads.' });
-          });
-        });
+    res.status(200).json({
+      status: 'success',
+      message: "Today's followups fetched successfully",
+      data: followups
     });
-  });
+  } catch (err) {
+    console.error('Error fetching followups:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
+
+
+// app.post('/api/transfer_wpforms_entries', (req, res) => {
+//   const query = `
+//     SELECT entry_id, fields, date
+//     FROM wpkh_wpforms_entries;
+//   `;
+
+//   connection.beginTransaction((transactionError) => {
+//     if (transactionError) {
+//       console.error('Error starting transaction:', transactionError);
+//       return res.status(500).json({ status: false, error: 'Failed to start transaction' });
+//     }
+
+//     connection.query(query, (error, results) => {
+//       if (error) {
+//         console.error('Error fetching entries:', error);
+//         connection.rollback(() => {
+//           res.status(500).json({ status: false, error: 'Database query failed' });
+//         });
+//         return;
+//       }
+
+//       if (results.length === 0) {
+//         connection.rollback(() => {
+//           res.json({ status: true, message: 'No entries found for the past month.' });
+//         });
+//         return;
+//       }
+
+//       // Define the mapping for checkbox options to their respective IDs
+//       const checkboxMapping = {
+//         "NEED A NEW WEBSITE FOR YOUR BUSINESS?": 1,
+//         "WANT TO APPEAR ON TOP OF GOOGLE SEARCH?": 2,
+//         "WANT MORE BUSINESS LEADS?": 3,
+//         "INCREASE SALES ON YOUR E-COMMERCE WEBSITE?": 4,
+//         "WANT TO TAKE YOUR BRAND TO LARGER AUDIENCE?": 5,
+//         "LOOKING FOR AUTOMATING YOUR BUSINESS PROCESS?": 6,
+//         "SOMETHING ELSE?": 7,
+//       };
+
+//       // Map contactPreference values to IDs
+//       const contactPreferenceMapping = {
+//         'Call': 1,
+//         'Schedule a Video Call': 2,
+//         // Add more mappings as needed
+//       };
+
+//       // Format date to remove milliseconds and make it 'YYYY-MM-DD HH:MM:SS'
+//       const formatDate = (date) => {
+//         const d = new Date(date);
+//         return d.toISOString().slice(0, 19).replace('T', ' '); // Format as 'YYYY-MM-DD HH:MM:SS'
+//       };
+
+//       // Function to add minutes to a date
+//       const addMinutes = (date, minutes) => {
+//         const d = new Date(date);
+//         d.setMinutes(d.getMinutes() + minutes); // Add minutes
+//         return d;
+//       };
+
+//       // Process each entry
+//       const leadInsertPromises = results.map((row) => {
+//         const fields = JSON.parse(row.fields);
+
+//         // Map JSON fields to table columns
+//         let name = fields['5']?.value || 'Unknown';
+//         const mobileNumber = fields['6']?.value || '';
+//         const email = fields['7']?.value || '';
+//         let city = fields['8']?.value || '';
+//         const websiteType = fields['9']?.value || '';
+//         const industryType = fields['10']?.value || '';
+//         let contactPreference = fields['11']?.value || '';
+//         const preferredDate = fields['12']?.date || '';
+//         const preferredTime = fields['14']?.value || '';
+//         const requirements = '';
+
+//         // Replace specific Hindi values with English equivalents
+//         if (city === 'मुंबई') {
+//           city = 'Mumbai';
+//         }
+//         if (name === 'प्रल्हाद') {
+//           name = 'Pralhad';
+//         }
+//         if (name === 'सीताराम') {
+//           name = 'Sitaram';
+//         }
+
+//         // Map website_type and industry_type to their IDs
+//         const websiteTypeId = websiteType ? serviceMap[websiteType] || 0 : 0; // Default to 0 if empty
+//         const industryTypeId = industryType ? industryMap[industryType] || 0 : 0; // Default to 0 if empty
+
+//         // Extract selected checkboxes and map to their IDs
+//         const checkboxField = fields['2']?.value || ''; // Assuming '2' is the checkbox field
+//         const selectedOptions = checkboxField.split('\n'); // Split by newline if options are separated by newline
+
+//         const selectedIds = selectedOptions
+//           .map(option => checkboxMapping[option]) // Map the option to its ID
+//           .filter(id => id !== undefined); // Remove undefined values (in case of invalid options)
+
+//         const checkBoxes = selectedIds.join(','); // Join the IDs into a comma-separated string without spaces
+
+//         // Map contactPreference to its ID
+//         contactPreference = contactPreferenceMapping[contactPreference] || 0; // Default to 0 if no match
+
+//         // Use the date field from the wpforms table as created_at and updated_at
+//         let createdAt = formatDate(addMinutes(row.date, 30)); // Add 30 minutes to created_at
+//         let updatedAt = formatDate(addMinutes(row.date, 30)); // Add 30 minutes to updated_at
+
+//         // Function to get the assigned user based on the service type
+//         const getAssignedUser = (serviceId) => {
+//           return new Promise((resolve, reject) => {
+//             const query = `
+//               SELECT id
+//               FROM ekarigar_users
+//               WHERE FIND_IN_SET(?, assigned_services) > 0
+//               AND delete_status = '0'  
+//               LIMIT 1
+//             `;
+//             connection.query(query, [serviceId], (err, results) => {
+//               if (err) {
+//                 reject(err);
+//               } else if (results.length > 0) {
+//                 resolve(results[0].id); // Return the user ID of the first match
+//               } else {
+//                 resolve(1); // Default to admin if no active user is found (fallback)
+//               }
+//             });
+//           });
+//         };
+
+//         // Determine the user to assign based on the service type
+//         return getAssignedUser(websiteTypeId)
+//           .then((assignedTo) => {
+//             const insertQuery = `
+//               INSERT INTO ekarigar_leads  (
+//                 assigned_to, status, name, mobile_number, email, city, website_type, industry_type,
+//                 contact_preference, preferred_date, preferred_time, requirements, lead_source, created_at, updated_at, checkbox_ids
+//               ) VALUES (
+//                 ?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?
+//               );
+//             `;
+
+//             return new Promise((resolve, reject) => {
+//               connection.query(
+//                 insertQuery,
+//                 [
+//                   assignedTo,  // Assigned to dynamic based on service type
+//                   name,
+//                   mobileNumber,
+//                   email,
+//                   city,
+//                   websiteTypeId, // Store the ID for website_type
+//                   industryTypeId, // Store the ID for industry_type
+//                   contactPreference,
+//                   preferredDate,
+//                   preferredTime,
+//                   requirements,
+//                   createdAt,
+//                   updatedAt, // Insert the adjusted updated_at (updated_on)
+//                   checkBoxes  // Insert the checkbox IDs here
+//                 ],
+//                 (err, result) => {
+//                   if (err) {
+//                     console.error('Error inserting lead:', err);
+//                     return reject(err);
+//                   }
+//                   resolve(result);
+//                 }
+//               );
+//             });
+//           });
+//       });
+
+//       // Execute all insert queries
+//       Promise.all(leadInsertPromises)
+//         .then(() => {
+//           connection.commit((commitError) => {
+//             if (commitError) {
+//               console.error('Error committing transaction:', commitError);
+//               connection.rollback(() => {
+//                 res.status(500).json({ status: false, error: 'Failed to commit transaction' });
+//               });
+//               return;
+//             }
+//             res.json({ status: true, message: 'All leads have been successfully transferred.' });
+//           });
+//         })
+//         .catch((err) => {
+//           console.error('Error during lead processing:', err);
+//           connection.rollback(() => {
+//             res.status(500).json({ status: false, error: 'Failed to transfer all leads.' });
+//           });
+//         });
+//     });
+//   });
+// });
 
 
 // app.post('/login', async (req, res) => {
@@ -2786,66 +2868,240 @@ app.post('/api/transfer_wpforms_entries', (req, res) => {
 //     });
 // });
 
+app.post('/api/transfer_wpforms_entries', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    await dbConnection.beginTransaction();
+
+    const query = `
+      SELECT entry_id, fields, date
+      FROM wpkh_wpforms_entries
+    `;
+    const [results] = await dbConnection.execute(query);
+
+    if (results.length === 0) {
+      await dbConnection.rollback();
+      return res.status(200).json({ status: 'success', message: 'No entries found for the past month.' });
+    }
+
+    const checkboxMapping = {
+      "NEED A NEW WEBSITE FOR YOUR BUSINESS?": 1,
+      "WANT TO APPEAR ON TOP OF GOOGLE SEARCH?": 2,
+      "WANT MORE BUSINESS LEADS?": 3,
+      "INCREASE SALES ON YOUR E-COMMERCE WEBSITE?": 4,
+      "WANT TO TAKE YOUR BRAND TO LARGER AUDIENCE?": 5,
+      "LOOKING FOR AUTOMATING YOUR BUSINESS PROCESS?": 6,
+      "SOMETHING ELSE?": 7,
+    };
+
+    const contactPreferenceMapping = {
+      'Call': 1,
+      'Schedule a Video Call': 2,
+    };
+
+    const formatDate = (date) => {
+      const d = new Date(date);
+      return d.toISOString().slice(0, 19).replace('T', ' ');
+    };
+
+    const addMinutes = (date, minutes) => {
+      const d = new Date(date);
+      d.setMinutes(d.getMinutes() + minutes);
+      return d;
+    };
+
+    const getAssignedUser = async (serviceId) => {
+      try {
+        const query = `
+          SELECT id
+          FROM ekarigar_users
+          WHERE FIND_IN_SET(?, assigned_services) > 0
+          AND delete_status = '0'  
+          LIMIT 1
+        `;
+        const [rows] = await dbConnection.execute(query, [serviceId]);
+        return rows.length > 0 ? rows[0].id : 1;
+      } catch (err) {
+        console.error('Error fetching assigned user:', err);
+        throw err;
+      }
+    };
+
+    const leadInsertPromises = results.map(async (row) => {
+      const fields = JSON.parse(row.fields);
+
+      let name = fields['5']?.value || 'Unknown';
+      const mobileNumber = fields['6']?.value || '';
+      const email = fields['7']?.value || '';
+      let city = fields['8']?.value || '';
+      const websiteType = fields['9']?.value || '';
+      const industryType = fields['10']?.value || '';
+      let contactPreference = fields['11']?.value || '';
+      const preferredDate = fields['12']?.date || '';
+      const preferredTime = fields['14']?.value || '';
+      const requirements = '';
+
+      if (city === 'मुंबई') city = 'Mumbai';
+      if (name === 'प्रल्हाद') name = 'Pralhad';
+      if (name === 'सीताराम') name = 'Sitaram';
+
+      const websiteTypeId = websiteType ? serviceMap[websiteType] || 0 : 0;
+      const industryTypeId = industryType ? industryMap[industryType] || 0 : 0;
+
+      const checkboxField = fields['2']?.value || '';
+      const selectedOptions = checkboxField.split('\n');
+      const selectedIds = selectedOptions
+        .map(option => checkboxMapping[option])
+        .filter(id => id !== undefined);
+      const checkBoxes = selectedIds.join(',');
+
+      contactPreference = contactPreferenceMapping[contactPreference] || 0;
+
+      let createdAt = formatDate(addMinutes(row.date, 30));
+      let updatedAt = formatDate(addMinutes(row.date, 30));
+
+      const assignedTo = await getAssignedUser(websiteTypeId);
+
+      const insertQuery = `
+        INSERT INTO ekarigar_leads (
+          assigned_to, status, name, mobile_number, email, city, website_type, industry_type,
+          contact_preference, preferred_date, preferred_time, requirements, lead_source, created_at, updated_at, checkbox_ids
+        ) VALUES (?, 1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?)
+      `;
+      await dbConnection.execute(insertQuery, [
+        assignedTo,
+        name,
+        mobileNumber,
+        email,
+        city,
+        websiteTypeId,
+        industryTypeId,
+        contactPreference,
+        preferredDate,
+        preferredTime,
+        requirements,
+        createdAt,
+        updatedAt,
+        checkBoxes
+      ]);
+    });
+
+    await Promise.all(leadInsertPromises);
+    await dbConnection.commit();
+
+    res.status(200).json({ status: 'success', message: 'All leads have been successfully transferred.' });
+  } catch (err) {
+    console.error('Error during lead processing:', err);
+    await dbConnection.rollback();
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+// app.post('/login', async (req, res) => {
+//     const { username, password } = req.body;
+
+//     // Check if both username/email and password are provided
+//     if (!username || !password) {
+//         return res.status(400).json({ message: 'Username/Email and password are required' });
+//     }
+
+//     // Use parameterized query to prevent SQL injection
+//     const query = `
+//         SELECT id, username, email 
+//         FROM ekarigar_users 
+//         WHERE (username = ? OR email = ?) 
+//           AND password = ? 
+//           AND delete_status = '0'
+//     `;
+
+//     connection.query(query, [username, username, password], (err, rows) => {
+//         if (err) {
+//             console.error(err);
+//             return res.status(500).json({ message: 'Database query error' });
+//         }
+
+//         // If no rows are found, the credentials are invalid
+//         if (rows.length === 0) {
+//             return res.status(401).json({ message: 'Invalid username/email or password' });
+//         }
+
+//         // Get the current Kolkata timestamp
+//         const kolkataTimestamp = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+
+//         // Update the `last_login` field for the logged-in user
+//         const updateQuery = `
+//             UPDATE ekarigar_users 
+//             SET last_login = ? 
+//             WHERE id = ?
+//         `;
+//         connection.query(updateQuery, [kolkataTimestamp, rows[0].id], (updateErr) => {
+//             if (updateErr) {
+//                 console.error(updateErr);
+//                 return res.status(500).json({ message: 'Error updating last login timestamp' });
+//             }
+
+//             // Send a success response with user data
+//             res.status(200).json({ 
+//                 message: 'Login successful', 
+//                 user: rows[0], 
+//                 last_login: kolkataTimestamp 
+//             });
+//         });
+//     });
+// });
 
 
 
 app.post('/login', async (req, res) => {
-    const { username, password } = req.body;
-
-    // Check if both username/email and password are provided
-    if (!username || !password) {
-        return res.status(400).json({ message: 'Username/Email and password are required' });
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
 
-    // Use parameterized query to prevent SQL injection
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username/Email and password are required' });
+    }
+
     const query = `
-        SELECT id, username, email 
-        FROM ekarigar_users 
-        WHERE (username = ? OR email = ?) 
-          AND password = ? 
-          AND delete_status = '0'
+      SELECT id, username, email 
+      FROM ekarigar_users 
+      WHERE (username = ? OR email = ?) 
+        AND password = ? 
+        AND delete_status = '0'
     `;
+    const [rows] = await dbConnection.execute(query, [username, username, password]);
 
-    connection.query(query, [username, username, password], (err, rows) => {
-        if (err) {
-            console.error(err);
-            return res.status(500).json({ message: 'Database query error' });
-        }
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid username/email or password' });
+    }
 
-        // If no rows are found, the credentials are invalid
-        if (rows.length === 0) {
-            return res.status(401).json({ message: 'Invalid username/email or password' });
-        }
+    const kolkataTimestamp = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
-        // Get the current Kolkata timestamp
-        const kolkataTimestamp = moment().tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+    const updateQuery = `
+      UPDATE ekarigar_users 
+      SET last_login = ? 
+      WHERE id = ?
+    `;
+    await dbConnection.execute(updateQuery, [kolkataTimestamp, rows[0].id]);
 
-        // Update the `last_login` field for the logged-in user
-        const updateQuery = `
-            UPDATE ekarigar_users 
-            SET last_login = ? 
-            WHERE id = ?
-        `;
-        connection.query(updateQuery, [kolkataTimestamp, rows[0].id], (updateErr) => {
-            if (updateErr) {
-                console.error(updateErr);
-                return res.status(500).json({ message: 'Error updating last login timestamp' });
-            }
-
-            // Send a success response with user data
-            res.status(200).json({ 
-                message: 'Login successful', 
-                user: rows[0], 
-                last_login: kolkataTimestamp 
-            });
-        });
+    res.status(200).json({ 
+      status: 'success',
+      message: 'Login successful', 
+      data: { user: rows[0], last_login: kolkataTimestamp }
     });
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-
-
-
-
+//----pause here khusha---
 
 // API endpoint to get leads checkbox options
 app.get('/api/checkbox-options', (req, res) => {
