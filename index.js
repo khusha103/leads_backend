@@ -1,83 +1,391 @@
-const { OpenAI } = require('openai');
-const express = require('express');
-// const multer = require('multer');
-const https = require('https');
-const http = require('http');
-// const path = require('path')
-const { google } = require("googleapis");
-const fs = require('fs')
-var cors = require('cors');
-var bodyparser = require('body-parser');
-const PORT = process.env.PORT || 4444 ;
-const app = express();
-const moment = require('moment-timezone'); 
-const VERIFY_TOKEN = "12345";
-const nodemailer = require('nodemailer');
+// const { OpenAI } = require('openai');
+// const express = require('express');
+// // const multer = require('multer');
+// const https = require('https');
+// const http = require('http');
+// // const path = require('path')
+// const { google } = require("googleapis");
+// const fs = require('fs')
+// var cors = require('cors');
+// var bodyparser = require('body-parser');
+// const PORT = process.env.PORT || 4444 ;
+// const app = express();
+// const moment = require('moment-timezone'); 
+// const VERIFY_TOKEN = "12345";
+// const nodemailer = require('nodemailer');
 
-const axios = require('axios');
+// const axios = require('axios');
 
-const openai = new OpenAI({
-  apiKey: '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', // Replace with your OpenAI API key
-});
+// const openai = new OpenAI({
+//   apiKey: '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', // Replace with your OpenAI API key
+// });
 
-const mysql = require('mysql');
-app.use(bodyparser.urlencoded({extended:true}));
-app.use(bodyparser.json());
-app.use(cors());
+// const mysql = require('mysql');
+// app.use(bodyparser.urlencoded({extended:true}));
+// app.use(bodyparser.json());
+// app.use(cors());
 
-// const cors = require('cors');
-// app.use(cors({
-//   origin: '*', // Allow any origin
-//   methods: ['POST', 'GET', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
-
-app.use(cors({
-  origin: 'https://staging.ekarigar.com',
-  credentials: true
-}));
+// // const cors = require('cors');
+// // app.use(cors({
+// //   origin: '*', // Allow any origin
+// //   methods: ['POST', 'GET', 'OPTIONS'],
+// //   allowedHeaders: ['Content-Type', 'Authorization']
+// // }));
 
 // app.use(cors({
-//   origin: 'https://staging.ekarigar.com',
-//   methods: ['GET', 'POST', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization'],
+//   origin: 'https://sales.ekarigar.com',
 //   credentials: true
 // }));
 
+// // app.use(cors({
+// //   origin: 'https://staging.ekarigar.com',
+// //   methods: ['GET', 'POST', 'OPTIONS'],
+// //   allowedHeaders: ['Content-Type', 'Authorization'],
+// //   credentials: true
+// // }));
 
 
-// To handle OPTIONS preflight request
+
+// // To handle OPTIONS preflight request
+// app.options('*', cors());
+
+
+// // app.use('/video', express.static(path.join(__dirname, 'uploads')));
+
+
+// app.use(function(req, res, next) {
+//   res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
+//   res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+//   next();
+// });
+
+// const connection = mysql.createConnection({
+//     host: 'ek-reps.com',
+//     user: 'ekreps_ekarigar_project',
+//     password: '2a41bl13c9',
+//     database: 'ekreps_ekarigar_project'
+//   });
+//   connection.connect((err)=> {
+//     if(!err)
+//     {
+//         console.log("connected");
+        
+//     }
+//     else{
+//         console.log("error" + JSON.stringify(err, undefined,2));
+//     }
+//   });
+  
+  
+// //---------------------------------fb leads integration code-----------------------------------  
+// // Mapping dictionaries
+// const fb_serviceMap = {
+//   'Website Development': 1,
+//   'E-Commerce Website Development': 2,
+//   'WordPress Development': 3,
+//   'Shopify Website Development': 4,
+//   'Custom Project Development & Planning': 5,
+//   'API Development & Integration': 6,
+//   'Search Engine Optimisation (SEO)': 7,
+//   'Social Media Marketing': 8,
+//   'Custom Application Development For Retail & Manufacturing Industry': 9,
+//   'IOT Custom Projects Research & Development': 10,
+//   'Technical, Sales & Customer Care Call Centre Services': 11,
+//   'AWS Setup & Management': 12,
+//   'UI/UX Planning & Designing': 13,
+//   'Hybrid iOS & Android Mobile App Development using IONIC & React': 14,
+//   'Data Analysis & Reporting': 15,
+//   'Not in list / Not mentioned': 16,
+//   'AI Solutions':17,
+//   'Business Intelligence & Dashboarding':18,
+//   'Customized Software Development & Planning':19,
+//   'Digital Transformation':20
+// };
+
+// const fb_industryMap = {
+//   'E-commerce': 1,
+//   'Retail and Consumer Goods': 1,
+//   'Automotive': 2,
+//   'Construction': 3,
+//   'Consulting': 4,
+//   'Education and Training': 5,
+//   'Energy and Utilities': 6,
+//   'Finance and Insurance': 7,
+//   'Healthcare and Medical': 8,
+//   'Hospitality and Tourism': 9,
+//   'Information Technology': 10,
+//   'Legal Services': 11,
+//   'Manufacturing': 12,
+//   'Marketing and Advertising': 13,
+//   'Media and Entertainment': 14,
+//   'Non-Profit and Social Services': 15,
+//   'Real Estate': 16,
+//   'Telecommunications': 17,
+//   'Transportation and Logistics': 18,
+//   'Wholesale and Distribution': 19,
+//   'Not in list / Not mentioned': 20
+// };
+
+// // Format date to MySQL-compatible format
+// // const formatDate = (dateStr) => {
+// //   const date = new Date(dateStr);
+// //   return date.toISOString().slice(0, 19).replace('T', ' ');
+// // };
+
+// const formatDate = (dateStr) => {
+//   return moment(dateStr).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+// };
+
+// // Mapping logic
+// // const mapPayloadToLead = (payload) => {
+// //   // Step 1: Extract core data
+// //   const entry = payload.entry[0];
+// //   const changes = entry.changes[0];
+// //   const value = changes.value;
+// //   const fieldData = value.field_data;
+// //   const createdTime = value.created_time;
+
+// //   // Step 2: Initialize mapped object
+// //   const mappedLead = {
+// //     assigned_to: '1',
+// //     status: '1',
+// //     name: '',
+// //     mobile_number: '',
+// //     email: '',
+// //     city: 'Not mentioned',
+// //     website_type: '',
+// //     industry_type: '',
+// //     contact_preference: '1',
+// //     preferred_date: '',
+// //     preferred_time: '',
+// //     requirements: '',
+// //     lead_source: '3',
+// //     checkbox_ids: null,
+// //     created_at: formatDate(createdTime),
+// //     updated_at: formatDate(createdTime)
+// //   };
+
+// //   // Step 3: Map field_data values
+// //   const requirementsParts = [];
+
+// //   fieldData.forEach(field => {
+// //     const name = field.name;
+// //     const value = field.values[0];
+
+// //     switch (name) {
+// //       case 'full_name':
+// //         mappedLead.name = value;
+// //         break;
+// //       case 'phone_number':
+// //         mappedLead.mobile_number = value;
+// //         break;
+// //       case 'email':
+// //         mappedLead.email = value;
+// //         break;
+// //       case 'business_name_or_industry_type?':
+// //         mappedLead.industry_type = fb_industryMap[value] ? fb_industryMap[value].toString() : '0';
+// //         requirementsParts.push(`Industry: ${value}`);
+// //         break;
+// //       case 'what_service_are_you_looking_for?_':
+// //         mappedLead.website_type = fb_serviceMap[value] ? fb_serviceMap[value].toString() : '0';
+// //         requirementsParts.push(`Service: ${value}`);
+// //         break;
+// //       case 'what’s_your_goal_with_this_project?':
+// //         requirementsParts.push(`Goal: ${value}`);
+// //         break;
+// //       case 'do_you_have_an_existing_website_or_app?':
+// //         requirementsParts.push(`Existing Website: ${value}`);
+// //         break;
+// //       case 'your_preferred_budget_range?':
+// //         requirementsParts.push(`Budget: ${value}`);
+// //         break;
+// //       case 'when_do_you_want_to_get_started?':
+// //         requirementsParts.push(`Preferred Start Time: ${value}`);
+// //         break;
+// //     }
+// //   });
+
+// //   // Step 4: Combine requirements
+// //   mappedLead.requirements = requirementsParts.join(', ');
+
+// //   return mappedLead;
+// // };
+
+
+// const mapPayloadToLead = (payload) => {
+//   // Step 1: Extract core data
+//   const fieldData = payload.field_data;
+//   const createdTime = payload.created_time;
+
+//   // Step 2: Initialize mapped object
+//   const mappedLead = {
+//     assigned_to: '6',
+//     status: '1',
+//     name: '',
+//     mobile_number: '',
+//     email: '',
+//     city: 'Not mentioned',
+//     website_type: '',
+//     industry_type: '',
+//     contact_preference: '1',
+//     preferred_date: '',
+//     preferred_time: '',
+//     requirements: '',
+//     lead_source: '3',
+//     checkbox_ids: null,
+//     created_at: formatDate(createdTime),
+//     updated_at: formatDate(createdTime)
+//   };
+
+//   // Step 3: Map field_data values
+//   const requirementsParts = [];
+
+//   fieldData.forEach(field => {
+//     const name = field.name;
+//     const value = field.values[0]; // << Here, assuming values is an array always
+
+//     switch (name) {
+//       case 'full_name':
+//         mappedLead.name = value;
+//         break;
+//       case 'phone_number':
+//         mappedLead.mobile_number = value;
+//         break;
+//       case 'email':
+//         mappedLead.email = value;
+//         break;
+//       case 'business_name_or_industry_type?':
+//         mappedLead.industry_type = fb_industryMap[value] ? fb_industryMap[value].toString() : '20';
+//         requirementsParts.push(`Industry: ${value}`);
+//         break;
+//       case 'what_service_are_you_looking_for?_':
+//         mappedLead.website_type = fb_serviceMap[value] ? fb_serviceMap[value].toString() : '16';
+//         requirementsParts.push(`Service: ${value}`);
+//         break;
+//       case 'what’s_your_goal_with_this_project?':
+//         requirementsParts.push(`Goal: ${value}`);
+//         break;
+//       case 'do_you_have_an_existing_website_or_app?':
+//         requirementsParts.push(`Existing Website: ${value}`);
+//         break;
+//       case 'your_preferred_budget_range?':
+//         requirementsParts.push(`Budget: ${value}`);
+//         break;
+//       case 'when_do_you_want_to_get_started?':
+//         requirementsParts.push(`Preferred Start Time: ${value}`);
+//         break;
+//     }
+//   });
+
+//   // Step 4: Combine requirements
+//   mappedLead.requirements = requirementsParts.join(', ');
+
+//   return mappedLead;
+// };
+
+
+// //api is when queries start
+
+// // API Endpoint
+// // app.post('/webhook', async (req, res) => {
+// //   try {
+// //     const payload = req.body;
+    
+// //     // Check if leadgen_id already exists
+// //     const leadgenId = payload.entry[0].changes[0].value.leadgen_id;
+// //     const [existing] = await pool.query('SELECT id FROM ekarigar_leads_dummy WHERE leadgen_id = ?', [leadgenId]);
+    
+// //     if (existing.length > 0) {
+// //       return res.status(400).json({ error: 'Lead with this leadgen_id already exists' });
+// //     }
+
+// //     // Map payload to lead
+// //     const mappedLead = mapPayloadToLead(payload);
+
+// //     // Insert into database
+// //     const query = `
+// //       INSERT INTO ekarigar_leads_dummy (
+// //         assigned_to, status, name, mobile_number, email, city, website_type, 
+// //         industry_type, contact_preference, preferred_date, preferred_time, 
+// //         requirements, lead_source, checkbox_ids, created_at, updated_at, leadgen_id
+// //       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+// //     `;
+// //     const values = [
+// //       mappedLead.assigned_to,
+// //       mappedLead.status,
+// //       mappedLead.name,
+// //       mappedLead.mobile_number,
+// //       mappedLead.email,
+// //       mappedLead.city,
+// //       mappedLead.website_type,
+// //       mappedLead.industry_type,
+// //       mappedLead.contact_preference,
+// //       mappedLead.preferred_date,
+// //       mappedLead.preferred_time,
+// //       mappedLead.requirements,
+// //       mappedLead.lead_source,
+// //       mappedLead.checkbox_ids,
+// //       mappedLead.created_at,
+// //       mappedLead.updated_at,
+// //       leadgenId
+// //     ];
+
+// //     await pool.query(query, values);
+
+// //     res.status(200).json({ message: 'Lead saved successfully' });
+// //   } catch (error) {
+// //     console.error('Error processing webhook:', error);
+// //     res.status(500).json({ error: 'Internal server error' });
+// //   }
+// // });
+// //---------------------------------fb leads integration code----------------------------------- 
+const express = require('express');
+const mysql = require('mysql2/promise');
+const { Client } = require('ssh2');
+const fs = require('fs');
+const path = require('path');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const moment = require('moment-timezone');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 4444;
+const VERIFY_TOKEN = process.env.VERIFY_TOKEN || '12345';
+
+// Middleware
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+app.use(cors({
+  origin: '*',
+  methods: ['POST', 'GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.options('*', cors());
 
-
-// app.use('/video', express.static(path.join(__dirname, 'uploads')));
-
-
-app.use(function(req, res, next) {
-  res.setHeader("Cross-Origin-Opener-Policy", "same-origin");
-  res.setHeader("Cross-Origin-Embedder-Policy", "require-corp");
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+  res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
   next();
 });
 
-const connection = mysql.createConnection({
-    host: 'ek-reps.com',
-    user: 'ekreps_ekarigar_project',
-    password: '2a41bl13c9',
-    database: 'ekreps_ekarigar_project'
-  });
-  connection.connect((err)=> {
-    if(!err)
-    {
-        console.log("connected");
-        
-    }
-    else{
-        console.log("error" + JSON.stringify(err, undefined,2));
-    }
-  });
-  
-  
-//---------------------------------fb leads integration code-----------------------------------  
+// SSH and MySQL configuration
+const sshConfig = {
+  host: process.env.SSH_HOST || '13.233.81.231',
+  port: parseInt(process.env.SSH_PORT) || 22,
+  username: process.env.SSH_USERNAME || 'ubuntu',
+  privateKey: fs.readFileSync(path.join(__dirname, process.env.SSH_KEY_PATH || 'config/ssh/salesekarigar.pem'))
+};
+
+const dbConfig = {
+  host: '127.0.0.1',
+  port: 3307,
+  user: process.env.DB_USER || 'sales_ekarigar',
+  password: process.env.DB_PASSWORD || 'sales_ekarigar@2025',
+  database: process.env.DB_NAME || 'sales_ekarigar'
+};
+
 // Mapping dictionaries
 const fb_serviceMap = {
   'Website Development': 1,
@@ -96,10 +404,10 @@ const fb_serviceMap = {
   'Hybrid iOS & Android Mobile App Development using IONIC & React': 14,
   'Data Analysis & Reporting': 15,
   'Not in list / Not mentioned': 16,
-  'AI Solutions':17,
-  'Business Intelligence & Dashboarding':18,
-  'Customized Software Development & Planning':19,
-  'Digital Transformation':20
+  'AI Solutions': 17,
+  'Business Intelligence & Dashboarding': 18,
+  'Customized Software Development & Planning': 19,
+  'Digital Transformation': 20
 };
 
 const fb_industryMap = {
@@ -126,98 +434,20 @@ const fb_industryMap = {
   'Not in list / Not mentioned': 20
 };
 
-// Format date to MySQL-compatible format
-// const formatDate = (dateStr) => {
-//   const date = new Date(dateStr);
-//   return date.toISOString().slice(0, 19).replace('T', ' ');
-// };
-
+// Date formatting for MySQL
 const formatDate = (dateStr) => {
   return moment(dateStr).tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 };
 
-// Mapping logic
-// const mapPayloadToLead = (payload) => {
-//   // Step 1: Extract core data
-//   const entry = payload.entry[0];
-//   const changes = entry.changes[0];
-//   const value = changes.value;
-//   const fieldData = value.field_data;
-//   const createdTime = value.created_time;
-
-//   // Step 2: Initialize mapped object
-//   const mappedLead = {
-//     assigned_to: '1',
-//     status: '1',
-//     name: '',
-//     mobile_number: '',
-//     email: '',
-//     city: 'Not mentioned',
-//     website_type: '',
-//     industry_type: '',
-//     contact_preference: '1',
-//     preferred_date: '',
-//     preferred_time: '',
-//     requirements: '',
-//     lead_source: '3',
-//     checkbox_ids: null,
-//     created_at: formatDate(createdTime),
-//     updated_at: formatDate(createdTime)
-//   };
-
-//   // Step 3: Map field_data values
-//   const requirementsParts = [];
-
-//   fieldData.forEach(field => {
-//     const name = field.name;
-//     const value = field.values[0];
-
-//     switch (name) {
-//       case 'full_name':
-//         mappedLead.name = value;
-//         break;
-//       case 'phone_number':
-//         mappedLead.mobile_number = value;
-//         break;
-//       case 'email':
-//         mappedLead.email = value;
-//         break;
-//       case 'business_name_or_industry_type?':
-//         mappedLead.industry_type = fb_industryMap[value] ? fb_industryMap[value].toString() : '0';
-//         requirementsParts.push(`Industry: ${value}`);
-//         break;
-//       case 'what_service_are_you_looking_for?_':
-//         mappedLead.website_type = fb_serviceMap[value] ? fb_serviceMap[value].toString() : '0';
-//         requirementsParts.push(`Service: ${value}`);
-//         break;
-//       case 'what’s_your_goal_with_this_project?':
-//         requirementsParts.push(`Goal: ${value}`);
-//         break;
-//       case 'do_you_have_an_existing_website_or_app?':
-//         requirementsParts.push(`Existing Website: ${value}`);
-//         break;
-//       case 'your_preferred_budget_range?':
-//         requirementsParts.push(`Budget: ${value}`);
-//         break;
-//       case 'when_do_you_want_to_get_started?':
-//         requirementsParts.push(`Preferred Start Time: ${value}`);
-//         break;
-//     }
-//   });
-
-//   // Step 4: Combine requirements
-//   mappedLead.requirements = requirementsParts.join(', ');
-
-//   return mappedLead;
-// };
-
-
+// Map Facebook payload to lead
 const mapPayloadToLead = (payload) => {
-  // Step 1: Extract core data
+  if (!payload.field_data || !payload.created_time) {
+    throw new Error('Invalid payload: missing field_data or created_time');
+  }
+
   const fieldData = payload.field_data;
   const createdTime = payload.created_time;
 
-  // Step 2: Initialize mapped object
   const mappedLead = {
     assigned_to: '6',
     status: '1',
@@ -237,12 +467,12 @@ const mapPayloadToLead = (payload) => {
     updated_at: formatDate(createdTime)
   };
 
-  // Step 3: Map field_data values
   const requirementsParts = [];
 
   fieldData.forEach(field => {
+    if (!field.name || !field.values || !field.values.length) return;
     const name = field.name;
-    const value = field.values[0]; // << Here, assuming values is an array always
+    const value = field.values[0];
 
     switch (name) {
       case 'full_name':
@@ -277,68 +507,142 @@ const mapPayloadToLead = (payload) => {
     }
   });
 
-  // Step 4: Combine requirements
   mappedLead.requirements = requirementsParts.join(', ');
-
   return mappedLead;
 };
 
+// Initialize SSH tunnel and MySQL connection
+let dbConnection = null;
 
-//api is when queries start
+async function startSSHTunnel() {
+  const ssh = new Client();
 
-// API Endpoint
-// app.post('/webhook', async (req, res) => {
-//   try {
-//     const payload = req.body;
+  return new Promise((resolve, reject) => {
+    ssh.on('ready', () => {
+      console.log('SSH connection established');
+      ssh.forwardOut(
+        '127.0.0.1',
+        3307,
+        '127.0.0.1',
+        3306,
+        async (err, stream) => {
+          if (err) {
+            console.error('SSH forwarding error:', err);
+            return reject(err);
+          }
+
+          try {
+            dbConnection = await mysql.createConnection({
+              ...dbConfig,
+              stream
+            });
+            console.log('Connected to MySQL database via SSH tunnel');
+            resolve(dbConnection);
+          } catch (dbErr) {
+            console.error('MySQL connection error:', dbErr);
+            reject(dbErr);
+          }
+        }
+      );
+    }).on('error', (err) => {
+      console.error('SSH connection error:', err);
+      reject(err);
+    }).connect(sshConfig);
+  });
+}
+
+// Facebook webhook verification
+app.get('/webhook', (req, res) => {
+  const mode = req.query['hub.mode'];
+  const token = req.query['hub.verify_token'];
+  const challenge = req.query['hub.challenge'];
+
+  if (mode === 'subscribe' && token === VERIFY_TOKEN) {
+    console.log('Webhook verified');
+    res.status(200).send(challenge);
+  } else {
+    res.sendStatus(403);
+  }
+});
+
+// Facebook webhook lead processing
+app.post('/webhook', async (req, res) => {
+  try {
+    const payload = req.body;
+    if (!payload.entry || !payload.entry[0].changes) {
+      return res.status(400).json({ error: 'Invalid payload structure' });
+    }
+
+    const leadData = mapPayloadToLead(payload.entry[0].changes[0].value);
     
-//     // Check if leadgen_id already exists
-//     const leadgenId = payload.entry[0].changes[0].value.leadgen_id;
-//     const [existing] = await pool.query('SELECT id FROM ekarigar_leads_dummy WHERE leadgen_id = ?', [leadgenId]);
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const query = `
+      INSERT INTO leads (
+        assigned_to, status, name, mobile_number, email, city, website_type,
+        industry_type, contact_preference, preferred_date, preferred_time,
+        requirements, lead_source, checkbox_ids, created_at, updated_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `;
     
-//     if (existing.length > 0) {
-//       return res.status(400).json({ error: 'Lead with this leadgen_id already exists' });
-//     }
+    const values = [
+      leadData.assigned_to,
+      leadData.status,
+      leadData.name,
+      leadData.mobile_number,
+      leadData.email,
+      leadData.city,
+      leadData.website_type,
+      leadData.industry_type,
+      leadData.contact_preference,
+      leadData.preferred_date,
+      leadData.preferred_time,
+      leadData.requirements,
+      leadData.lead_source,
+      leadData.checkbox_ids,
+      leadData.created_at,
+      leadData.updated_at
+    ];
 
-//     // Map payload to lead
-//     const mappedLead = mapPayloadToLead(payload);
+    await dbConnection.execute(query, values);
+    console.log('Lead inserted successfully:', leadData);
+    res.status(200).json({ status: 'success' });
+  } catch (err) {
+    console.error('Error processing webhook:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
-//     // Insert into database
-//     const query = `
-//       INSERT INTO ekarigar_leads_dummy (
-//         assigned_to, status, name, mobile_number, email, city, website_type, 
-//         industry_type, contact_preference, preferred_date, preferred_time, 
-//         requirements, lead_source, checkbox_ids, created_at, updated_at, leadgen_id
-//       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//     `;
-//     const values = [
-//       mappedLead.assigned_to,
-//       mappedLead.status,
-//       mappedLead.name,
-//       mappedLead.mobile_number,
-//       mappedLead.email,
-//       mappedLead.city,
-//       mappedLead.website_type,
-//       mappedLead.industry_type,
-//       mappedLead.contact_preference,
-//       mappedLead.preferred_date,
-//       mappedLead.preferred_time,
-//       mappedLead.requirements,
-//       mappedLead.lead_source,
-//       mappedLead.checkbox_ids,
-//       mappedLead.created_at,
-//       mappedLead.updated_at,
-//       leadgenId
-//     ];
+// Start server
+async function startServer() {
+  try {
+    await startSSHTunnel();
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to start server:', err);
+    process.exit(1);
+  }
+}
 
-//     await pool.query(query, values);
 
-//     res.status(200).json({ message: 'Lead saved successfully' });
-//   } catch (error) {
-//     console.error('Error processing webhook:', error);
-//     res.status(500).json({ error: 'Internal server error' });
-//   }
-// });
-//---------------------------------fb leads integration code----------------------------------- 
+// Get lead status list
+app.get('/api/lead-statuses', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const [rows] = await dbConnection.execute('SELECT id, status_name FROM ekarigar_leads_status');
+    res.status(200).json({ status: 'success', data: rows });
+  } catch (err) {
+    console.error('Error fetching lead statuses:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 
 //----------------------------------multer configuration-----------------------------------
@@ -4842,14 +5146,17 @@ app.post('/api/run-sql', (req, res) => {
 // -------------------------------------------------end of queries--------------------------------------------
 
 
-const sslServer = https.createServer(
-  {
-  key: fs.readFileSync(path.join(__dirname,'certificate','key.pem')),
-  cert: fs.readFileSync(path.join(__dirname,'certificate','cert.pem'))
-  },
-  app
-);
+// const sslServer = https.createServer(
+//   {
+//   key: fs.readFileSync(path.join(__dirname,'certificate','key.pem')),
+//   cert: fs.readFileSync(path.join(__dirname,'certificate','cert.pem'))
+//   },
+//   app
+// );
 
-sslServer.listen(4444, () => console.log('Secure serve on port 4444'));
+// sslServer.listen(4444, () => console.log('Secure serve on port 4444'));
+
+
+startServer();
 
 
