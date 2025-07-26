@@ -648,7 +648,7 @@ app.get('/api/lead-statuses', async (req, res) => {
 //----------------------------------multer configuration-----------------------------------
 // Import necessary modules
 const multer = require('multer');
-const path = require('path');
+// const path = require('path');
 
 // Define storage settings for the uploaded files
 const storage = multer.diskStorage({
@@ -717,34 +717,34 @@ const upload = multer({
 
 //-------------------------------------drive intergration code-----------------
 // Authenticate with Google Drive
-const auth = new google.auth.GoogleAuth({
-  keyFile: "alert-smoke-450416-g3-9bbc203685cc.json",
-  scopes: ["https://www.googleapis.com/auth/drive.file"],
-});
-const drive = google.drive({ version: "v3", auth });
+// const auth = new google.auth.GoogleAuth({
+//   keyFile: "alert-smoke-450416-g3-9bbc203685cc.json",
+//   scopes: ["https://www.googleapis.com/auth/drive.file"],
+// });
+// const drive = google.drive({ version: "v3", auth });
 
-// Upload File to Google Drive
-const uploadToDrive = async (filePath, fileName) => {
-  const fileMetadata = {
-    name: fileName,
-    parents: ["121isx78RRzbUpxI15DWEX1JUDCoXWvZX"],
-  };
-  const media = {
-    mimeType: "application/zip",
-    body: fs.createReadStream(filePath),
-  };
+// // Upload File to Google Drive
+// const uploadToDrive = async (filePath, fileName) => {
+//   const fileMetadata = {
+//     name: fileName,
+//     parents: ["121isx78RRzbUpxI15DWEX1JUDCoXWvZX"],
+//   };
+//   const media = {
+//     mimeType: "application/zip",
+//     body: fs.createReadStream(filePath),
+//   };
 
-  const response = await drive.files.create({
-    resource: fileMetadata,
-    media: media,
-    fields: "id, webViewLink",
-  });
+//   const response = await drive.files.create({
+//     resource: fileMetadata,
+//     media: media,
+//     fields: "id, webViewLink",
+//   });
 
-  // Delete file from local storage after upload
-  fs.unlinkSync(filePath);
+//   // Delete file from local storage after upload
+//   fs.unlinkSync(filePath);
 
-  return response.data;
-};
+//   return response.data;
+// };
 
 // API Route to Handle File Upload
 app.post("/api/upload_g", upload.single("file"), async (req, res) => {
