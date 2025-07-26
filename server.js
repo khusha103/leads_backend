@@ -38,16 +38,11 @@ const sshConfig = {
 };
 
 const dbConfig = {
-  // host: '127.0.0.1',
-  // port: 3307,
-  // user: process.env.DB_USER || 'sales_ekarigar',
-  // password: process.env.DB_PASSWORD || 'sales_ekarigar@2025',
-  // database: process.env.DB_NAME || 'sales_ekarigar'
-
-  host: 'ek-reps.com',
-    user: 'ekreps_ekarigar_project',
-    password: '2a41bl13c9',
-    database: 'ekreps_ekarigar_project'
+  host: '127.0.0.1',
+  port: 3307,
+  user: process.env.DB_USER || 'sales_ekarigar',
+  password: process.env.DB_PASSWORD || 'sales_ekarigar@2025',
+  database: process.env.DB_NAME || 'sales_ekarigar'
 };
 
 // Mapping dictionaries
