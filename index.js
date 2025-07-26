@@ -25,7 +25,7 @@ app.use(bodyparser.urlencoded({extended:true}));
 app.use(bodyparser.json());
 app.use(cors());
 
-const cors = require('cors');
+// const cors = require('cors');
 app.use(cors({
   origin: '*', // Allow any origin
   methods: ['POST', 'GET', 'OPTIONS'],
