@@ -25,12 +25,12 @@ app.use(bodyparser.urlencoded({extended:true}));
 app.use(bodyparser.json());
 app.use(cors());
 
-// const cors = require('cors');
-// app.use(cors({
-//   origin: '*', // Allow any origin
-//   methods: ['POST', 'GET', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
+const cors = require('cors');
+app.use(cors({
+  origin: '*', // Allow any origin
+  methods: ['POST', 'GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 app.use(cors({
   origin: 'https://ek-reps.com',
