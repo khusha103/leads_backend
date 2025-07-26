@@ -353,17 +353,39 @@ const app = express();
 const PORT = process.env.PORT || 4444;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || '12345';
 
+// // Middleware
+// app.use(bodyParser.urlencoded({ extended: true }));
+// app.use(bodyParser.json());
+// app.use(cors({
+//   origin: '*',
+//   methods: ['POST', 'GET', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+// app.options('*', cors());
+
+// // Security headers
+// app.use((req, res, next) => {
+//   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+//   res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+//   next();
+// });
+
 // Middleware
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors({
-  origin: '*',
-  methods: ['POST', 'GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
-app.options('*', cors());
 
-// Security headers
+// ✅ Updated CORS setup
+const corsOptions = {
+  origin: 'https://sales.ekarigar.com', // ✅ Your frontend domain
+  methods: ['POST', 'GET', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true // ✅ Only if you are using cookies or auth headers
+};
+
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // ✅ For handling preflight requests
+
+// ✅ Optional: Security headers (safe to keep)
 app.use((req, res, next) => {
   res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
   res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
@@ -2868,6 +2890,38 @@ app.get('/api/today-followups', async (req, res) => {
 //     });
 // });
 
+app.post('/login', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'Username/Email and password are required' });
+    }
+
+    const query = `
+      SELECT id, username, email 
+      FROM ekarigar_users 
+      WHERE (username = ? OR email = ?) 
+        AND password = ? 
+        AND delete_status = '0'
+    `;
+    const [rows] = await dbConnection.execute(query, [username, username, password]);
+
+    if (rows.length === 0) {
+      return res.status(401).json({ error: 'Invalid username/email or password' });
+    }
+
+    res.status(200).json({ status: 'success', message: 'Login successful', data: { user: rows[0] } });
+  } catch (err) {
+    console.error('Error during login:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/transfer_wpforms_entries', async (req, res) => {
   try {
     if (!dbConnection) {
@@ -3104,73 +3158,156 @@ app.post('/login', async (req, res) => {
 //----pause here khusha---
 
 // API endpoint to get leads checkbox options
-app.get('/api/checkbox-options', (req, res) => {
-  const query = 'SELECT id, option_name FROM ekarigar_lead_checkbox';
+// app.get('/api/checkbox-options', (req, res) => {
+//   const query = 'SELECT id, option_name FROM ekarigar_lead_checkbox';
 
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error fetching checkbox options:', error);
-      return res.status(500).json({ error: 'Database query failed' });
+//   connection.query(query, (error, results) => {
+//     if (error) {
+//       console.error('Error fetching checkbox options:', error);
+//       return res.status(500).json({ error: 'Database query failed' });
+//     }
+//     res.json(results);
+//   });
+// });
+
+
+app.get('/api/checkbox-options', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
-    res.json(results);
-  });
-});
 
+    const query = 'SELECT id, option_name FROM ekarigar_lead_checkbox';
+    const [results] = await dbConnection.execute(query);
+
+    res.status(200).json({ status: 'success', data: results });
+  } catch (err) {
+    console.error('Error fetching checkbox options:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 // API endpoint to get leads status options
-app.get('/api/status-options', (req, res) => {
-  const query = 'SELECT id, status_name FROM ekarigar_leads_status';
+// app.get('/api/status-options', (req, res) => {
+//   const query = 'SELECT id, status_name FROM ekarigar_leads_status';
 
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error fetching status options:', error);
-      return res.status(500).json({ error: 'Database query failed' });
+//   connection.query(query, (error, results) => {
+//     if (error) {
+//       console.error('Error fetching status options:', error);
+//       return res.status(500).json({ error: 'Database query failed' });
+//     }
+//     res.json(results);
+//   });
+// });
+app.get('/api/status-options', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
-    res.json(results);
-  });
+
+    const query = 'SELECT id, status_name FROM ekarigar_leads_status';
+    const [results] = await dbConnection.execute(query);
+
+    res.status(200).json({ status: 'success', data: results });
+  } catch (err) {
+    console.error('Error fetching status options:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-app.get('/api/likelihood-options', (req, res) => {
-  const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
 
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error fetching likelihood options:', error);
-      return res.status(500).json({ error: 'Database query failed' });
-    }
-    res.json(results);
-  });
-});
+// app.get('/api/likelihood-options', (req, res) => {
+//   const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
+
+//   connection.query(query, (error, results) => {
+//     if (error) {
+//       console.error('Error fetching likelihood options:', error);
+//       return res.status(500).json({ error: 'Database query failed' });
+//     }
+//     res.json(results);
+//   });
+// });
 
 
 // API endpoint to get lead source options
-app.get('/api/lead-sources', (req, res) => {
-  const query = 'SELECT id, source_name FROM ekarigar_lead_source';
-
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error fetching lead sources:', error);
-      return res.status(500).json({ error: 'Database query failed' });
+app.get('/api/likelihood-options', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
     }
-    res.json(results);
-  });
+
+    const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
+    const [results] = await dbConnection.execute(query);
+
+    res.status(200).json({ status: 'success', data: results });
+  } catch (err) {
+    console.error('Error fetching likelihood options:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
-// API endpoint to get likelihood options
-app.get('/api/likelihood-options', (req, res) => {
-  const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
 
-  connection.query(query, (error, results) => {
-    if (error) {
-      console.error('Error fetching likelihood options:', error);
-      return res.status(500).json({ error: 'Database query failed' });
-    }
-    res.json(results);
-  });
-});
+// app.get('/api/lead-sources', (req, res) => {
+//   const query = 'SELECT id, source_name FROM ekarigar_lead_source';
+
+//   connection.query(query, (error, results) => {
+//     if (error) {
+//       console.error('Error fetching lead sources:', error);
+//       return res.status(500).json({ error: 'Database query failed' });
+//     }
+//     res.json(results);
+//   });
+// });
+
+// // API endpoint to get likelihood options
+// app.get('/api/likelihood-options', (req, res) => {
+//   const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
+
+//   connection.query(query, (error, results) => {
+//     if (error) {
+//       console.error('Error fetching likelihood options:', error);
+//       return res.status(500).json({ error: 'Database query failed' });
+//     }
+//     res.json(results);
+//   });
+// });
 
 
 
 // API endpoint to get users for checkbox options
+app.get('/api/lead-sources', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const query = 'SELECT id, source_name FROM ekarigar_lead_source';
+    const [results] = await dbConnection.execute(query);
+
+    res.status(200).json({ status: 'success', data: results });
+  } catch (err) {
+    console.error('Error fetching lead sources:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/likelihood-options', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
+    const [results] = await dbConnection.execute(query);
+
+    res.status(200).json({ status: 'success', data: results });
+  } catch (err) {
+    console.error('Error fetching likelihood options:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// ----hard pause khusha---
+
 app.get('/api/get_users', (req, res) => {
   const query = `
     SELECT id, username 
