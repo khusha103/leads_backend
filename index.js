@@ -26,16 +26,24 @@ app.use(bodyparser.json());
 app.use(cors());
 
 // const cors = require('cors');
-app.use(cors({
-  origin: '*', // Allow any origin
-  methods: ['POST', 'GET', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+// app.use(cors({
+//   origin: '*', // Allow any origin
+//   methods: ['POST', 'GET', 'OPTIONS'],
+//   allowedHeaders: ['Content-Type', 'Authorization']
+// }));
+
+// app.use(cors({
+//   origin: 'https://ek-reps.com',
+//   credentials: true
+// }));
 
 app.use(cors({
-  origin: 'https://ek-reps.com',
+  origin: 'https://staging.ekarigar.com',
+  methods: ['GET', 'POST', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
+
 
 
 // To handle OPTIONS preflight request
