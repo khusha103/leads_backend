@@ -2890,7 +2890,7 @@ app.get('/api/today-followups', async (req, res) => {
 //     });
 // });
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   try {
     if (!dbConnection) {
       return res.status(500).json({ error: 'Database connection not established' });
