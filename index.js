@@ -2890,16 +2890,48 @@ app.get('/api/today-followups', async (req, res) => {
 //     });
 // });
 
+// app.post('/api/login', async (req, res) => {
+//   try {
+//     if (!dbConnection) {
+//       return res.status(500).json({ error: 'Database connection not established' });
+//     }
+
+//     const { username, password } = req.body;
+
+//     if (!username || !password) {
+//       return res.status(400).json({ error: 'Username/Email and password are required' });
+//     }
+
+//     const query = `
+//       SELECT id, username, email 
+//       FROM ekarigar_users 
+//       WHERE (username = ? OR email = ?) 
+//         AND password = ? 
+//         AND delete_status = '0'
+//     `;
+//     const [rows] = await dbConnection.execute(query, [username, username, password]);
+
+//     if (rows.length === 0) {
+//       return res.status(401).json({ error: 'Invalid username/email or password' });
+//     }
+
+//     res.status(200).json({ status: 'success', message: 'Login successful', data: { user: rows[0] } });
+//   } catch (err) {
+//     console.error('Error during login:', err);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
 app.post('/api/login', async (req, res) => {
   try {
     if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
+      return res.status(500).json({ message: 'Database connection not established' });
     }
 
     const { username, password } = req.body;
 
     if (!username || !password) {
-      return res.status(400).json({ error: 'Username/Email and password are required' });
+      return res.status(400).json({ message: 'Username/Email and password are required' });
     }
 
     const query = `
@@ -2912,13 +2944,13 @@ app.post('/api/login', async (req, res) => {
     const [rows] = await dbConnection.execute(query, [username, username, password]);
 
     if (rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid username/email or password' });
+      return res.status(401).json({ message: 'Invalid username/email or password' });
     }
 
-    res.status(200).json({ status: 'success', message: 'Login successful', data: { user: rows[0] } });
+    res.status(200).json({ message: 'Login successful', user: rows[0] });
   } catch (err) {
     console.error('Error during login:', err);
-    res.status(500).json({ error: 'Internal server error' });
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 
