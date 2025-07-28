@@ -3241,7 +3241,9 @@ app.get('/api/status-options', async (req, res) => {
     const query = 'SELECT id, status_name FROM ekarigar_leads_status';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.status(200).json(results);
+
   } catch (err) {
     console.error('Error fetching status options:', err);
     res.status(500).json({ error: 'Internal server error' });
