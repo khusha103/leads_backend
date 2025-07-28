@@ -14,8 +14,6 @@
 // const VERIFY_TOKEN = "12345";
 // const nodemailer = require('nodemailer');
 
-
-
 // const axios = require('axios');
 
 // const openai = new OpenAI({
@@ -3342,468 +3340,226 @@ app.get('/api/likelihood-options', async (req, res) => {
 
 // ----hard pause khusha---
 
-// app.get('/api/get_users', (req, res) => {
-//   const query = `
-//     SELECT id, username 
-//     FROM ekarigar_users
-//     WHERE delete_status = '0'; 
-//   `;
+app.get('/api/get_users', (req, res) => {
+  const query = `
+    SELECT id, username 
+    FROM ekarigar_users
+    WHERE delete_status = '0'; 
+  `;
 
-//   connection.query(query, (error, results) => {
-//     if (error) {
-//       console.error('Error fetching users:', error);
-//       return res.status(500).json({ status: false, error: 'Database query failed' });
-//     }
-
-//     // Check if results are empty
-//     if (results.length === 0) {
-//       return res.json({ status: true, data: [], message: 'No users found' });
-//     }
-
-//     // Successful response with data
-//     res.json({ status: true, data: results });
-//   });
-// });
-
-app.get('/api/get_users', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
+  connection.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ status: false, error: 'Database query failed' });
     }
 
-    const query = `
-      SELECT id, username 
-      FROM ekarigar_users
-      WHERE delete_status = '0';
-    `;
-    
-    const [results] = await dbConnection.execute(query);
-
+    // Check if results are empty
     if (results.length === 0) {
-      return res.status(200).json({ status: true, data: [], message: 'No users found' });
+      return res.json({ status: true, data: [], message: 'No users found' });
     }
 
-    res.status(200).json({ status: true, data: results });
-  } catch (err) {
-    console.error('Error fetching users:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+    // Successful response with data
+    res.json({ status: true, data: results });
+  });
 });
-
 
 
 // API endpoint to get leads checkbox options
-// app.get('/api/get_industryType', (req, res) => {
-//   const query = 'SELECT id, industryname FROM ekarigar_industrytype';
+app.get('/api/get_industryType', (req, res) => {
+  const query = 'SELECT id, industryname FROM ekarigar_industrytype';
 
-//   connection.query(query, (error, results) => {
-//     if (error) {
-//       console.error('Error fetching users:', error);
-//       return res.status(500).json({ error: 'Database query failed' });
-//     }
-//     res.json(results);
-//   });
-// });
-
-app.get('/api/get_industryType', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
+  connection.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ error: 'Database query failed' });
     }
-
-    const query = 'SELECT id, industryname FROM ekarigar_industrytype';
-    const [results] = await dbConnection.execute(query);
-
-    res.status(200).json({ status: 'success', data: results });
-  } catch (err) {
-    console.error('Error fetching industry types:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+    res.json(results);
+  });
 });
-
 
 // Define the GET API to fetch service types in reverse order
-// app.get('/api/getservicetypes', (req, res) => {
-// //   const query = 'SELECT * FROM ekarigar_servicetype ORDER BY servicename ASC'; 
-// const query = 'SELECT * FROM ekarigar_servicetype'; 
+app.get('/api/getservicetypes', (req, res) => {
+//   const query = 'SELECT * FROM ekarigar_servicetype ORDER BY servicename ASC'; 
+const query = 'SELECT * FROM ekarigar_servicetype'; 
 
 
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       res.status(500).send({ message: 'Error fetching service types' });
-//     } else {
-//       res.json(results);
-//     }
-//   });
-// });
-
-app.get('/api/getservicetypes', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send({ message: 'Error fetching service types' });
+    } else {
+      res.json(results);
     }
-
-    // You can uncomment the ORDER BY clause if needed
-    const query = 'SELECT * FROM ekarigar_servicetype'; 
-    // const query = 'SELECT * FROM ekarigar_servicetype ORDER BY servicename ASC';
-
-    const [results] = await dbConnection.execute(query);
-
-    res.status(200).json({ status: 'success', data: results });
-  } catch (err) {
-    console.error('Error fetching service types:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
-
-
 //update this if we need we only show service type acc to select user as (assignee)
 //--------------------------------If required then add this in frontend page with below endpoint
 //https://ek-reps.com:4444/api/getuserservicetypes?user_id=2
+app.get('/api/getuserservicetypes', (req, res) => {
+  // Simulating getting the user ID from local storage (for server-side testing)
+  const userId = req.query.user_id;
 
-// app.get('/api/getuserservicetypes', (req, res) => {
-//   // Simulating getting the user ID from local storage (for server-side testing)
-//   const userId = req.query.user_id;
+  if (!userId) {
+    return res.status(400).send({ message: 'User ID is required' });
+  }
 
-//   if (!userId) {
-//     return res.status(400).send({ message: 'User ID is required' });
-//   }
+  // Query to get the assigned services for the user
+  const userQuery = 'SELECT assigned_services FROM ekarigar_users WHERE id = ?';
 
-//   // Query to get the assigned services for the user
-//   const userQuery = 'SELECT assigned_services FROM ekarigar_users WHERE id = ?';
-
-//   connection.query(userQuery, [userId], (err, userResults) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).send({ message: 'Error fetching user data' });
-//     }
-
-//     if (userResults.length === 0) {
-//       return res.status(404).send({ message: 'User not found' });
-//     }
-
-//     const assignedServices = userResults[0].assigned_services;
-
-//     if (!assignedServices) {
-//       return res.json([]); // No services assigned
-//     }
-
-//     // Convert comma-separated service IDs into an array
-//     const serviceIds = assignedServices.split(',').map(id => id.trim());
-
-//     // Query to get only the assigned services
-//     const serviceQuery = `
-//       SELECT * 
-//       FROM ekarigar_servicetype 
-//       WHERE id IN (?)
-//     `;
-
-//     connection.query(serviceQuery, [serviceIds], (err, serviceResults) => {
-//       if (err) {
-//         console.error(err);
-//         return res.status(500).send({ message: 'Error fetching service types' });
-//       }
-
-//       res.json(serviceResults);
-//     });
-//   });
-// });
-
-app.get('/api/getuserservicetypes', async (req, res) => {
-  try {
-    const userId = req.query.user_id;
-
-    if (!userId) {
-      return res.status(400).json({ error: 'User ID is required' });
+  connection.query(userQuery, [userId], (err, userResults) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: 'Error fetching user data' });
     }
-
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
-    }
-
-    // Get assigned_services string from the user
-    const userQuery = 'SELECT assigned_services FROM ekarigar_users WHERE id = ?';
-    const [userResults] = await dbConnection.execute(userQuery, [userId]);
 
     if (userResults.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
+      return res.status(404).send({ message: 'User not found' });
     }
 
     const assignedServices = userResults[0].assigned_services;
 
     if (!assignedServices) {
-      return res.status(200).json({ status: 'success', data: [], message: 'No services assigned to this user' });
+      return res.json([]); // No services assigned
     }
 
-    // Convert comma-separated IDs into array
+    // Convert comma-separated service IDs into an array
     const serviceIds = assignedServices.split(',').map(id => id.trim());
 
-    // MySQL requires at least one item in the IN clause
-    if (serviceIds.length === 0) {
-      return res.status(200).json({ status: 'success', data: [], message: 'No valid service IDs' });
-    }
+    // Query to get only the assigned services
+    const serviceQuery = `
+      SELECT * 
+      FROM ekarigar_servicetype 
+      WHERE id IN (?)
+    `;
 
-    // Fetch service details for assigned service IDs
-    const placeholders = serviceIds.map(() => '?').join(','); // ?, ?, ? based on count
-    const serviceQuery = `SELECT * FROM ekarigar_servicetype WHERE id IN (${placeholders})`;
-    const [serviceResults] = await dbConnection.execute(serviceQuery, serviceIds);
+    connection.query(serviceQuery, [serviceIds], (err, serviceResults) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send({ message: 'Error fetching service types' });
+      }
 
-    res.status(200).json({ status: 'success', data: serviceResults });
-  } catch (err) {
-    console.error('Error fetching user service types:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+      res.json(serviceResults);
+    });
+  });
 });
 
 
+app.get('/api/get_roles', (req, res) => {
 
-// app.get('/api/get_roles', (req, res) => {
-
-// const query = 'SELECT * FROM ekarigar_roles'; 
+const query = 'SELECT * FROM ekarigar_roles'; 
 
 
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       res.status(500).send({ message: 'Error fetching roles' });
-//     } else {
-//       res.json(results);
-//     }
-//   });
-// });
-
-app.get('/api/get_roles', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send({ message: 'Error fetching roles' });
+    } else {
+      res.json(results);
     }
-
-    const query = 'SELECT * FROM ekarigar_roles';
-    const [results] = await dbConnection.execute(query);
-
-    res.status(200).json({ status: 'success', data: results });
-  } catch (err) {
-    console.error('Error fetching roles:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
-
 
 
 // API endpoint to get contact methods
-
-// app.get('/api/get_contact_methods', (req, res) => {
-//     const query = 'SELECT * FROM ekarigar_contact_methods';
-
-//     connection.query(query, (err, results) => {
-//         if (err) {
-//             console.error(err);
-//             res.status(500).send({ message: 'Error fetching contact methods' });
-//         } else {
-//             res.json(results);
-//         }
-//     });
-// });
-
-app.get('/api/get_contact_methods', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
-    }
-
+app.get('/api/get_contact_methods', (req, res) => {
     const query = 'SELECT * FROM ekarigar_contact_methods';
-    const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
-  } catch (err) {
-    console.error('Error fetching contact methods:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+    connection.query(query, (err, results) => {
+        if (err) {
+            console.error(err);
+            res.status(500).send({ message: 'Error fetching contact methods' });
+        } else {
+            res.json(results);
+        }
+    });
 });
 
+app.get('/api/get_permissions', (req, res) => {
 
-// app.get('/api/get_permissions', (req, res) => {
-
-// const query = 'SELECT * FROM ekarigar_permissions'; 
-
-
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       res.status(500).send({ message: 'Error fetching ekarigar_permissions' });
-//     } else {
-//       res.json(results);
-//     }
-//   });
-// });
+const query = 'SELECT * FROM ekarigar_permissions'; 
 
 
-app.get('/api/get_permissions', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
-    }
-
-    const query = 'SELECT * FROM ekarigar_permissions';
-    const [results] = await dbConnection.execute(query);
-
-    res.status(200).json({ status: 'success', data: results });
-  } catch (err) {
-    console.error('Error fetching ekarigar_permissions:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-
-
-// app.get('/api/get_services_with_status', (req, res) => {
-//   const query = `
-//     SELECT 
-//       s.id, 
-//       s.servicename,
-//       (SELECT COUNT(*) 
-//        FROM ekarigar_users u 
-//        WHERE FIND_IN_SET(s.id, u.assigned_services) 
-//          AND u.delete_status = '0') AS is_assigned
-//     FROM ekarigar_servicetype s;
-//   `;
-
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       res.status(500).send({ message: 'Error fetching services with status' });
-//     } else {
-//       res.json(results);
-//     }
-//   });
-// });
-
-app.get('/api/get_services_with_status', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
-    }
-
-    const query = `
-      SELECT 
-        s.id, 
-        s.servicename,
-        (
-          SELECT COUNT(*) 
-          FROM ekarigar_users u 
-          WHERE FIND_IN_SET(s.id, u.assigned_services) 
-            AND u.delete_status = '0'
-        ) AS is_assigned
-      FROM ekarigar_servicetype s;
-    `;
-
-    const [results] = await dbConnection.execute(query);
-
-    res.status(200).json({ status: 'success', data: results });
-  } catch (err) {
-    console.error('Error fetching services with status:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-
-
-// app.get('/api/getUserRole/:userId', (req, res) => {
-//   const userId = req.params.userId;
-
-//   const query = 'SELECT role_id FROM ekarigar_users WHERE id = ? AND delete_status = "0"';
-
-//   connection.query(query, [userId], (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       res.status(500).send({ message: 'Error fetching user role' });
-//     } else if (results.length > 0) {
-//       const roleId = results[0].role_id; // Get the role_id from the results
-//       res.json({ role_id: roleId }); // Return the role_id directly
-//     } else {
-//       res.status(404).send({ message: 'User not found or deleted' });
-//     }
-//   });
-// });
-
-app.get('/api/getUserRole/:userId', async (req, res) => {
-  try {
-    const userId = req.params.userId;
-
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
-    }
-
-    const query = 'SELECT role_id FROM ekarigar_users WHERE id = ? AND delete_status = "0"';
-    const [results] = await dbConnection.execute(query, [userId]);
-
-    if (results.length > 0) {
-      const roleId = results[0].role_id;
-      res.status(200).json({ status: 'success', role_id: roleId });
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send({ message: 'Error fetching ekarigar_permissions' });
     } else {
-      res.status(404).json({ error: 'User not found or deleted' });
+      res.json(results);
     }
-  } catch (err) {
-    console.error('Error fetching user role:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+  });
 });
 
 
-// app.get('/api/user/:userId/permissions', (req, res) => {
-//     const userId = req.params.userId;
-
-//     // SQL query to get permissions for the specified user
-//     const query = `
-//         SELECT p.id 
-//         FROM ekarigar_users u 
-//         JOIN ekarigar_permissions p ON FIND_IN_SET(p.id, u.permissions) > 0 
-//         WHERE u.id = ? AND u.delete_status = '0'
-//     `;
-
-//     connection.query(query, [userId], (err, results) => {
-//         if (err) {
-//             console.error(err);
-//             return res.status(500).send({ message: 'Error fetching user permissions' });
-//         }
-
-//         // Extract permission IDs from results
-//         const permissionIds = results.map(row => row.id);
-        
-//         // Send back the permission IDs as an array
-//         res.json(permissionIds);
-//     });
-// });
 
 
-app.get('/api/user/:userId/permissions', async (req, res) => {
-  try {
+app.get('/api/get_services_with_status', (req, res) => {
+  const query = `
+    SELECT 
+      s.id, 
+      s.servicename,
+      (SELECT COUNT(*) 
+       FROM ekarigar_users u 
+       WHERE FIND_IN_SET(s.id, u.assigned_services) 
+         AND u.delete_status = '0') AS is_assigned
+    FROM ekarigar_servicetype s;
+  `;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send({ message: 'Error fetching services with status' });
+    } else {
+      res.json(results);
+    }
+  });
+});
+
+
+
+
+app.get('/api/getUserRole/:userId', (req, res) => {
+  const userId = req.params.userId;
+
+  const query = 'SELECT role_id FROM ekarigar_users WHERE id = ? AND delete_status = "0"';
+
+  connection.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      res.status(500).send({ message: 'Error fetching user role' });
+    } else if (results.length > 0) {
+      const roleId = results[0].role_id; // Get the role_id from the results
+      res.json({ role_id: roleId }); // Return the role_id directly
+    } else {
+      res.status(404).send({ message: 'User not found or deleted' });
+    }
+  });
+});
+
+
+
+app.get('/api/user/:userId/permissions', (req, res) => {
     const userId = req.params.userId;
 
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
-    }
-
+    // SQL query to get permissions for the specified user
     const query = `
-      SELECT p.id 
-      FROM ekarigar_users u 
-      JOIN ekarigar_permissions p 
-        ON FIND_IN_SET(p.id, u.permissions) > 0 
-      WHERE u.id = ? AND u.delete_status = '0'
+        SELECT p.id 
+        FROM ekarigar_users u 
+        JOIN ekarigar_permissions p ON FIND_IN_SET(p.id, u.permissions) > 0 
+        WHERE u.id = ? AND u.delete_status = '0'
     `;
 
-    const [results] = await dbConnection.execute(query, [userId]);
+    connection.query(query, [userId], (err, results) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send({ message: 'Error fetching user permissions' });
+        }
 
-    const permissionIds = results.map(row => row.id);
-
-    res.status(200).json({ status: 'success', data: permissionIds });
-  } catch (err) {
-    console.error('Error fetching user permissions:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+        // Extract permission IDs from results
+        const permissionIds = results.map(row => row.id);
+        
+        // Send back the permission IDs as an array
+        res.json(permissionIds);
+    });
 });
 
 
@@ -3915,86 +3671,76 @@ app.get('/api/user/:userId/permissions', async (req, res) => {
 // });
 
 
-app.get('/api/getleads', async (req, res) => {
-  try {
-    const userId = req.headers['user-id'];
-    const userPermissions = req.headers['user-permissions'];
+app.get('/api/getleads', (req, res) => {
+  const userId = req.headers['user-id'];
+  const userPermissions = req.headers['user-permissions'];
 
-    if (!userId || !userPermissions) {
-      return res.status(400).json({ error: 'User ID or permissions not provided' });
+  if (!userId || !userPermissions) {
+    return res.status(400).send({ message: 'User ID or permissions not provided' });
+  }
+
+  let query = `
+    SELECT 
+        l.id, 
+        l.assigned_to, 
+        u.username AS assigned_username,
+        l.status AS status_id, 
+        ls.status_name AS status, 
+        l.name, 
+        l.mobile_number, 
+        l.email, 
+        l.city,
+        l.website_type AS website_type_id,
+        l.industry_type AS industry_type_id,
+        st.servicename AS website_type, 
+        it.industryname AS industry_type, 
+        cm.id AS contact_preference_id, 
+        cm.method_name AS contact_preference, 
+        l.preferred_date, 
+        l.preferred_time, 
+        l.requirements, 
+        l.lead_source AS source_id,
+        ls_table.source_name AS lead_source,
+        l.checkbox_ids, 
+        l.created_at, 
+        l.updated_at,
+        COUNT(f.id) AS followUpCount
+    FROM 
+        ekarigar_leads l
+    LEFT JOIN 
+        ekarigar_servicetype st ON l.website_type = st.id
+    LEFT JOIN 
+        ekarigar_industrytype it ON l.industry_type = it.id
+    LEFT JOIN 
+        ekarigar_followups f ON l.id = f.lead_id
+    LEFT JOIN 
+        ekarigar_users u ON l.assigned_to = u.id
+    LEFT JOIN 
+        ekarigar_contact_methods cm ON l.contact_preference = cm.id
+    LEFT JOIN 
+        ekarigar_leads_status ls ON l.status = ls.id
+    LEFT JOIN 
+        ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
+    WHERE 
+        MONTH(l.created_at) = MONTH(CURDATE()) 
+        AND YEAR(l.created_at) = YEAR(CURDATE())
+  `;
+
+  if (userPermissions !== '1') {
+    console.log("Restricted permissions: Fetching assigned leads");
+    query += ` AND (l.assigned_to = ${connection.escape(userId)} 
+               OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ${connection.escape(userId)}))`;
+  } else {
+    console.log("Admin permissions: Fetching all leads for current month");
+  }
+
+  query += ` GROUP BY l.id ORDER BY l.id DESC;`;
+
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: 'Error fetching leads' });
     }
-
-    if (!dbConnection) {
-      return res.status(500).json({ error: 'Database connection not established' });
-    }
-
-    // Base query
-    let query = `
-      SELECT 
-          l.id, 
-          l.assigned_to, 
-          u.username AS assigned_username,
-          l.status AS status_id, 
-          ls.status_name AS status, 
-          l.name, 
-          l.mobile_number, 
-          l.email, 
-          l.city,
-          l.website_type AS website_type_id,
-          l.industry_type AS industry_type_id,
-          st.servicename AS website_type, 
-          it.industryname AS industry_type, 
-          cm.id AS contact_preference_id, 
-          cm.method_name AS contact_preference, 
-          l.preferred_date, 
-          l.preferred_time, 
-          l.requirements, 
-          l.lead_source AS source_id,
-          ls_table.source_name AS lead_source,
-          l.checkbox_ids, 
-          l.created_at, 
-          l.updated_at,
-          COUNT(f.id) AS followUpCount
-      FROM 
-          ekarigar_leads l
-      LEFT JOIN 
-          ekarigar_servicetype st ON l.website_type = st.id
-      LEFT JOIN 
-          ekarigar_industrytype it ON l.industry_type = it.id
-      LEFT JOIN 
-          ekarigar_followups f ON l.id = f.lead_id
-      LEFT JOIN 
-          ekarigar_users u ON l.assigned_to = u.id
-      LEFT JOIN 
-          ekarigar_contact_methods cm ON l.contact_preference = cm.id
-      LEFT JOIN 
-          ekarigar_leads_status ls ON l.status = ls.id
-      LEFT JOIN 
-          ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
-      WHERE 
-          MONTH(l.created_at) = MONTH(CURDATE()) 
-          AND YEAR(l.created_at) = YEAR(CURDATE())
-    `;
-
-    const queryParams = [];
-
-    // Apply permission-based filtering
-    if (userPermissions !== '1') {
-      console.log("Restricted permissions: Fetching assigned leads");
-      query += `
-        AND (
-          l.assigned_to = ? 
-          OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?)
-        )
-      `;
-      queryParams.push(userId, userId);
-    } else {
-      console.log("Admin permissions: Fetching all leads for current month");
-    }
-
-    query += ` GROUP BY l.id ORDER BY l.id DESC`;
-
-    const [results] = await dbConnection.execute(query, queryParams);
 
     const data = results.map(row => ({
       id: row.id,
@@ -4023,223 +3769,91 @@ app.get('/api/getleads', async (req, res) => {
       followUpCount: row.followUpCount || 0,
     }));
 
-    res.status(200).json({ status: true, data });
-  } catch (err) {
-    console.error('Error fetching leads:', err);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+    res.json({ status: true, data });
+  });
 });
 
-// app.get('/api/getleads', (req, res) => {
-//   const userId = req.headers['user-id'];
-//   const userPermissions = req.headers['user-permissions'];
+app.get('/api/getleads_wip', (req, res) => {
+  const userId = req.headers['user-id'];
+  const userPermissions = req.headers['user-permissions'];
 
-//   if (!userId || !userPermissions) {
-//     return res.status(400).send({ message: 'User ID or permissions not provided' });
-//   }
+  // Get startDate and endDate from query params (optional)
+  const { startDate, endDate } = req.query;
 
-//   let query = `
-//     SELECT 
-//         l.id, 
-//         l.assigned_to, 
-//         u.username AS assigned_username,
-//         l.status AS status_id, 
-//         ls.status_name AS status, 
-//         l.name, 
-//         l.mobile_number, 
-//         l.email, 
-//         l.city,
-//         l.website_type AS website_type_id,
-//         l.industry_type AS industry_type_id,
-//         st.servicename AS website_type, 
-//         it.industryname AS industry_type, 
-//         cm.id AS contact_preference_id, 
-//         cm.method_name AS contact_preference, 
-//         l.preferred_date, 
-//         l.preferred_time, 
-//         l.requirements, 
-//         l.lead_source AS source_id,
-//         ls_table.source_name AS lead_source,
-//         l.checkbox_ids, 
-//         l.created_at, 
-//         l.updated_at,
-//         COUNT(f.id) AS followUpCount
-//     FROM 
-//         ekarigar_leads l
-//     LEFT JOIN 
-//         ekarigar_servicetype st ON l.website_type = st.id
-//     LEFT JOIN 
-//         ekarigar_industrytype it ON l.industry_type = it.id
-//     LEFT JOIN 
-//         ekarigar_followups f ON l.id = f.lead_id
-//     LEFT JOIN 
-//         ekarigar_users u ON l.assigned_to = u.id
-//     LEFT JOIN 
-//         ekarigar_contact_methods cm ON l.contact_preference = cm.id
-//     LEFT JOIN 
-//         ekarigar_leads_status ls ON l.status = ls.id
-//     LEFT JOIN 
-//         ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
-//     WHERE 
-//         MONTH(l.created_at) = MONTH(CURDATE()) 
-//         AND YEAR(l.created_at) = YEAR(CURDATE())
-//   `;
+  if (!userId || !userPermissions) {
+    return res.status(400).send({ message: 'User ID or permissions not provided' });
+  }
 
-//   if (userPermissions !== '1') {
-//     console.log("Restricted permissions: Fetching assigned leads");
-//     query += ` AND (l.assigned_to = ${connection.escape(userId)} 
-//                OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ${connection.escape(userId)}))`;
-//   } else {
-//     console.log("Admin permissions: Fetching all leads for current month");
-//   }
+  // Base query
+  let query = `
+    SELECT 
+        l.id, 
+        l.assigned_to, 
+        u.username AS assigned_username,
+        l.status AS status_id, 
+        ls.status_name AS status, 
+        l.name, 
+        l.mobile_number, 
+        l.email, 
+        l.city,
+        l.website_type AS website_type_id,
+        l.industry_type AS industry_type_id,
+        st.servicename AS website_type, 
+        it.industryname AS industry_type, 
+        cm.id AS contact_preference_id, 
+        cm.method_name AS contact_preference, 
+        l.preferred_date, 
+        l.preferred_time, 
+        l.requirements, 
+        l.lead_source AS source_id,
+        ls_table.source_name AS lead_source,
+        l.checkbox_ids, 
+        l.created_at, 
+        l.updated_at,
+        l.likelihood_id,
+        COUNT(f.id) AS followUpCount
+    FROM 
+        ekarigar_leads l
+    LEFT JOIN 
+        ekarigar_servicetype st ON l.website_type = st.id
+    LEFT JOIN 
+        ekarigar_industrytype it ON l.industry_type = it.id
+    LEFT JOIN 
+        ekarigar_followups f ON l.id = f.lead_id
+    LEFT JOIN 
+        ekarigar_users u ON l.assigned_to = u.id
+    LEFT JOIN 
+        ekarigar_contact_methods cm ON l.contact_preference = cm.id
+    LEFT JOIN 
+        ekarigar_leads_status ls ON l.status = ls.id
+    LEFT JOIN 
+        ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
+    WHERE 
+  `;
 
-//   query += ` GROUP BY l.id ORDER BY l.id DESC;`;
+  // Add date filtering condition
+  if (startDate && endDate) {
+    query += ` DATE(l.created_at) BETWEEN ${connection.escape(startDate)} AND ${connection.escape(endDate)}`;
+  } else {
+    query += ` MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`;
+  }
 
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).send({ message: 'Error fetching leads' });
-//     }
+  // Filter based on permissions
+  if (userPermissions !== '1') {
+    console.log("Restricted permissions: Fetching assigned leads");
+    query += ` AND (l.assigned_to = ${connection.escape(userId)} 
+               OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ${connection.escape(userId)}))`;
+  } else {
+    console.log("Admin permissions: Fetching all leads");
+  }
 
-//     const data = results.map(row => ({
-//       id: row.id,
-//       assigned_to_id: row.assigned_to,
-//       assigned_to: row.assigned_username || null,
-//       status_id: row.status_id,
-//       status: row.status,
-//       name: row.name,
-//       mobile_number: row.mobile_number,
-//       email: row.email,
-//       city: row.city,
-//       website_type_id: row.website_type_id,
-//       industry_type_id: row.industry_type_id,
-//       website_type: row.website_type,
-//       industry_type: row.industry_type,
-//       contact_preference: row.contact_preference,
-//       contact_preference_id: row.contact_preference_id || null,
-//       preferred_date: row.preferred_date,
-//       preferred_time: row.preferred_time,
-//       requirements: row.requirements,
-//       source_id: row.source_id,
-//       lead_source: row.lead_source,
-//       checkbox_ids: row.checkbox_ids,
-//       created_at: row.created_at,
-//       updated_at: row.updated_at,
-//       followUpCount: row.followUpCount || 0,
-//     }));
+  query += ` GROUP BY l.id ORDER BY l.id DESC;`;
 
-//     res.json({ status: true, data });
-//   });
-// });
-
-
-app.get('/api/getleads_wip', async (req, res) => {
-  try {
-    const userId = req.headers['user-id'];
-    const userPermissions = req.headers['user-permissions'];
-
-    const {
-      createdStartDate,
-      createdEndDate,
-      updatedStartDate,
-      updatedEndDate
-    } = req.query;
-
-    if (!userId || !userPermissions) {
-      return res.status(400).json({ message: 'User ID or permissions not provided' });
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: 'Error fetching leads' });
     }
-
-    if (!dbConnection) {
-      return res.status(500).json({ message: 'Database connection not established' });
-    }
-
-    // Base query
-    let query = `
-      SELECT 
-          l.id, 
-          l.assigned_to, 
-          u.username AS assigned_username,
-          l.status AS status_id, 
-          ls.status_name AS status, 
-          l.name, 
-          l.mobile_number, 
-          l.email, 
-          l.city,
-          l.website_type AS website_type_id,
-          l.industry_type AS industry_type_id,
-          st.servicename AS website_type, 
-          it.industryname AS industry_type, 
-          cm.id AS contact_preference_id, 
-          cm.method_name AS contact_preference, 
-          l.preferred_date, 
-          l.preferred_time, 
-          l.requirements, 
-          l.lead_source AS source_id,
-          ls_table.source_name AS lead_source,
-          l.checkbox_ids, 
-          l.created_at, 
-          l.updated_at,
-          l.likelihood_id,
-          COUNT(f.id) AS followUpCount
-      FROM 
-          ekarigar_leads l
-      LEFT JOIN 
-          ekarigar_servicetype st ON l.website_type = st.id
-      LEFT JOIN 
-          ekarigar_industrytype it ON l.industry_type = it.id
-      LEFT JOIN 
-          ekarigar_followups f ON l.id = f.lead_id
-      LEFT JOIN 
-          ekarigar_users u ON l.assigned_to = u.id
-      LEFT JOIN 
-          ekarigar_contact_methods cm ON l.contact_preference = cm.id
-      LEFT JOIN 
-          ekarigar_leads_status ls ON l.status = ls.id
-      LEFT JOIN 
-          ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
-      WHERE 1=1
-    `;
-
-    const queryParams = [];
-
-    // Build date conditions
-    const dateConditions = [];
-
-    if (createdStartDate && createdEndDate) {
-      dateConditions.push(`DATE(l.created_at) BETWEEN ? AND ?`);
-      queryParams.push(createdStartDate, createdEndDate);
-    }
-
-    if (updatedStartDate && updatedEndDate) {
-      dateConditions.push(`DATE(l.updated_at) BETWEEN ? AND ?`);
-      queryParams.push(updatedStartDate, updatedEndDate);
-    }
-
-    // If no date filters, default to current month
-    if (dateConditions.length === 0) {
-      dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
-    }
-
-    if (dateConditions.length > 0) {
-      query += ` AND (${dateConditions.join(' AND ')})`;
-    }
-
-    // Permission-based filtering
-    if (userPermissions !== '1') {
-      query += `
-        AND (
-          l.assigned_to = ? 
-          OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?)
-        )
-      `;
-      queryParams.push(userId, userId);
-    }
-
-    query += ` GROUP BY l.id ORDER BY l.id DESC`;
-
-    console.log('Executing query:', query, queryParams);
-
-    const [results] = await dbConnection.execute(query, queryParams);
 
     const data = results.map(row => ({
       id: row.id,
@@ -4265,380 +3879,122 @@ app.get('/api/getleads_wip', async (req, res) => {
       checkbox_ids: row.checkbox_ids,
       created_at: row.created_at,
       updated_at: row.updated_at,
-      likelihood_id: row.likelihood_id,
+      likelihood_id : row.likelihood_id,
       followUpCount: row.followUpCount || 0,
     }));
 
-    res.status(200).json({ status: true, data });
-  } catch (err) {
-    console.error('Error fetching leads:', err);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+    res.json({ status: true, data });
+  });
 });
-
-// app.get('/api/getleads_wip', (req, res) => {
-//   const userId = req.headers['user-id'];
-//   const userPermissions = req.headers['user-permissions'];
-
-//   // Get startDate and endDate from query params (optional)
-//   const { startDate, endDate } = req.query;
-
-//   if (!userId || !userPermissions) {
-//     return res.status(400).send({ message: 'User ID or permissions not provided' });
-//   }
-
-//   // Base query
-//   let query = `
-//     SELECT 
-//         l.id, 
-//         l.assigned_to, 
-//         u.username AS assigned_username,
-//         l.status AS status_id, 
-//         ls.status_name AS status, 
-//         l.name, 
-//         l.mobile_number, 
-//         l.email, 
-//         l.city,
-//         l.website_type AS website_type_id,
-//         l.industry_type AS industry_type_id,
-//         st.servicename AS website_type, 
-//         it.industryname AS industry_type, 
-//         cm.id AS contact_preference_id, 
-//         cm.method_name AS contact_preference, 
-//         l.preferred_date, 
-//         l.preferred_time, 
-//         l.requirements, 
-//         l.lead_source AS source_id,
-//         ls_table.source_name AS lead_source,
-//         l.checkbox_ids, 
-//         l.created_at, 
-//         l.updated_at,
-//         l.likelihood_id,
-//         COUNT(f.id) AS followUpCount
-//     FROM 
-//         ekarigar_leads l
-//     LEFT JOIN 
-//         ekarigar_servicetype st ON l.website_type = st.id
-//     LEFT JOIN 
-//         ekarigar_industrytype it ON l.industry_type = it.id
-//     LEFT JOIN 
-//         ekarigar_followups f ON l.id = f.lead_id
-//     LEFT JOIN 
-//         ekarigar_users u ON l.assigned_to = u.id
-//     LEFT JOIN 
-//         ekarigar_contact_methods cm ON l.contact_preference = cm.id
-//     LEFT JOIN 
-//         ekarigar_leads_status ls ON l.status = ls.id
-//     LEFT JOIN 
-//         ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
-//     WHERE 
-//   `;
-
-//   // Add date filtering condition
-//   if (startDate && endDate) {
-//     query += ` DATE(l.created_at) BETWEEN ${connection.escape(startDate)} AND ${connection.escape(endDate)}`;
-//   } else {
-//     query += ` MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`;
-//   }
-
-//   // Filter based on permissions
-//   if (userPermissions !== '1') {
-//     console.log("Restricted permissions: Fetching assigned leads");
-//     query += ` AND (l.assigned_to = ${connection.escape(userId)} 
-//                OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ${connection.escape(userId)}))`;
-//   } else {
-//     console.log("Admin permissions: Fetching all leads");
-//   }
-
-//   query += ` GROUP BY l.id ORDER BY l.id DESC;`;
-
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).send({ message: 'Error fetching leads' });
-//     }
-
-//     const data = results.map(row => ({
-//       id: row.id,
-//       assigned_to_id: row.assigned_to,
-//       assigned_to: row.assigned_username || null,
-//       status_id: row.status_id,
-//       status: row.status,
-//       name: row.name,
-//       mobile_number: row.mobile_number,
-//       email: row.email,
-//       city: row.city,
-//       website_type_id: row.website_type_id,
-//       industry_type_id: row.industry_type_id,
-//       website_type: row.website_type,
-//       industry_type: row.industry_type,
-//       contact_preference: row.contact_preference,
-//       contact_preference_id: row.contact_preference_id || null,
-//       preferred_date: row.preferred_date,
-//       preferred_time: row.preferred_time,
-//       requirements: row.requirements,
-//       source_id: row.source_id,
-//       lead_source: row.lead_source,
-//       checkbox_ids: row.checkbox_ids,
-//       created_at: row.created_at,
-//       updated_at: row.updated_at,
-//       likelihood_id : row.likelihood_id,
-//       followUpCount: row.followUpCount || 0,
-//     }));
-
-//     res.json({ status: true, data });
-//   });
-// });
 
 
 ///-----with updated on filter params-----------
 
-// app.get('/api/getleads_wipp', (req, res) => {
-//   const userId = req.headers['user-id'];
-//   const userPermissions = req.headers['user-permissions'];
+app.get('/api/getleads_wipp', (req, res) => {
+  const userId = req.headers['user-id'];
+  const userPermissions = req.headers['user-permissions'];
   
-//   // Get date parameters for both created and updated dates
-//   const { 
-//     createdStartDate, 
-//     createdEndDate, 
-//     updatedStartDate, 
-//     updatedEndDate 
-//   } = req.query;
+  // Get date parameters for both created and updated dates
+  const { 
+    createdStartDate, 
+    createdEndDate, 
+    updatedStartDate, 
+    updatedEndDate 
+  } = req.query;
   
-//   if (!userId || !userPermissions) {
-//     return res.status(400).send({ message: 'User ID or permissions not provided' });
-//   }
+  if (!userId || !userPermissions) {
+    return res.status(400).send({ message: 'User ID or permissions not provided' });
+  }
   
-//   // Base query
-//   let query = `
-//     SELECT 
-//         l.id, 
-//         l.assigned_to, 
-//         u.username AS assigned_username,
-//         l.status AS status_id, 
-//         ls.status_name AS status, 
-//         l.name, 
-//         l.mobile_number, 
-//         l.email, 
-//         l.city,
-//         l.website_type AS website_type_id,
-//         l.industry_type AS industry_type_id,
-//         st.servicename AS website_type, 
-//         it.industryname AS industry_type, 
-//         cm.id AS contact_preference_id, 
-//         cm.method_name AS contact_preference, 
-//         l.preferred_date, 
-//         l.preferred_time, 
-//         l.requirements, 
-//         l.lead_source AS source_id,
-//         ls_table.source_name AS lead_source,
-//         l.checkbox_ids, 
-//         l.created_at, 
-//         l.updated_at,
-//         l.likelihood_id,
-//         COUNT(f.id) AS followUpCount
-//     FROM 
-//         ekarigar_leads l
-//     LEFT JOIN 
-//         ekarigar_servicetype st ON l.website_type = st.id
-//     LEFT JOIN 
-//         ekarigar_industrytype it ON l.industry_type = it.id
-//     LEFT JOIN 
-//         ekarigar_followups f ON l.id = f.lead_id
-//     LEFT JOIN 
-//         ekarigar_users u ON l.assigned_to = u.id
-//     LEFT JOIN 
-//         ekarigar_contact_methods cm ON l.contact_preference = cm.id
-//     LEFT JOIN 
-//         ekarigar_leads_status ls ON l.status = ls.id
-//     LEFT JOIN 
-//         ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
-//     WHERE 1=1
-//   `;
+  // Base query
+  let query = `
+    SELECT 
+        l.id, 
+        l.assigned_to, 
+        u.username AS assigned_username,
+        l.status AS status_id, 
+        ls.status_name AS status, 
+        l.name, 
+        l.mobile_number, 
+        l.email, 
+        l.city,
+        l.website_type AS website_type_id,
+        l.industry_type AS industry_type_id,
+        st.servicename AS website_type, 
+        it.industryname AS industry_type, 
+        cm.id AS contact_preference_id, 
+        cm.method_name AS contact_preference, 
+        l.preferred_date, 
+        l.preferred_time, 
+        l.requirements, 
+        l.lead_source AS source_id,
+        ls_table.source_name AS lead_source,
+        l.checkbox_ids, 
+        l.created_at, 
+        l.updated_at,
+        l.likelihood_id,
+        COUNT(f.id) AS followUpCount
+    FROM 
+        ekarigar_leads l
+    LEFT JOIN 
+        ekarigar_servicetype st ON l.website_type = st.id
+    LEFT JOIN 
+        ekarigar_industrytype it ON l.industry_type = it.id
+    LEFT JOIN 
+        ekarigar_followups f ON l.id = f.lead_id
+    LEFT JOIN 
+        ekarigar_users u ON l.assigned_to = u.id
+    LEFT JOIN 
+        ekarigar_contact_methods cm ON l.contact_preference = cm.id
+    LEFT JOIN 
+        ekarigar_leads_status ls ON l.status = ls.id
+    LEFT JOIN 
+        ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
+    WHERE 1=1
+  `;
   
-//   // Build date filtering conditions
-//   let dateConditions = [];
+  // Build date filtering conditions
+  let dateConditions = [];
   
-//   // Created date filter
-//   if (createdStartDate && createdEndDate) {
-//     dateConditions.push(`DATE(l.created_at) BETWEEN ${connection.escape(createdStartDate)} AND ${connection.escape(createdEndDate)}`);
-//   }
+  // Created date filter
+  if (createdStartDate && createdEndDate) {
+    dateConditions.push(`DATE(l.created_at) BETWEEN ${connection.escape(createdStartDate)} AND ${connection.escape(createdEndDate)}`);
+  }
   
-//   // Updated date filter
-//   if (updatedStartDate && updatedEndDate) {
-//     dateConditions.push(`DATE(l.updated_at) BETWEEN ${connection.escape(updatedStartDate)} AND ${connection.escape(updatedEndDate)}`);
-//   }
+  // Updated date filter
+  if (updatedStartDate && updatedEndDate) {
+    dateConditions.push(`DATE(l.updated_at) BETWEEN ${connection.escape(updatedStartDate)} AND ${connection.escape(updatedEndDate)}`);
+  }
   
-//   // If no date filters are provided, default to current month for created_at
-//   if (dateConditions.length === 0) {
-//     dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
-//   }
+  // If no date filters are provided, default to current month for created_at
+  if (dateConditions.length === 0) {
+    dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
+  }
   
-//   // Add date conditions to query
-//   if (dateConditions.length > 0) {
-//     query += ` AND (${dateConditions.join(' AND ')})`;
-//   }
+  // Add date conditions to query
+  if (dateConditions.length > 0) {
+    query += ` AND (${dateConditions.join(' AND ')})`;
+  }
   
-//   // Filter based on permissions
-//   if (userPermissions !== '1') {
-//     console.log("Restricted permissions: Fetching assigned leads");
-//     query += ` AND (l.assigned_to = ${connection.escape(userId)} 
-//                OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ${connection.escape(userId)}))`;
-//   } else {
-//     console.log("Admin permissions: Fetching all leads");
-//   }
+  // Filter based on permissions
+  if (userPermissions !== '1') {
+    console.log("Restricted permissions: Fetching assigned leads");
+    query += ` AND (l.assigned_to = ${connection.escape(userId)} 
+               OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ${connection.escape(userId)}))`;
+  } else {
+    console.log("Admin permissions: Fetching all leads");
+  }
   
-//   query += ` GROUP BY l.id ORDER BY l.id DESC;`;
+  query += ` GROUP BY l.id ORDER BY l.id DESC;`;
   
-//   console.log('Executing query:', query); // For debugging
+  console.log('Executing query:', query); // For debugging
   
-//   connection.query(query, (err, results) => {
-//     if (err) {
-//       console.error(err);
-//       return res.status(500).send({ message: 'Error fetching leads' });
-//     }
+  connection.query(query, (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ message: 'Error fetching leads' });
+    }
     
-//     const data = results.map(row => ({
-//       id: row.id,
-//       assigned_to_id: row.assigned_to,
-//       assigned_to: row.assigned_username || null,
-//       status_id: row.status_id,
-//       status: row.status,
-//       name: row.name,
-//       mobile_number: row.mobile_number,
-//       email: row.email,
-//       city: row.city,
-//       website_type_id: row.website_type_id,
-//       industry_type_id: row.industry_type_id,
-//       website_type: row.website_type,
-//       industry_type: row.industry_type,
-//       contact_preference: row.contact_preference,
-//       contact_preference_id: row.contact_preference_id || null,
-//       preferred_date: row.preferred_date,
-//       preferred_time: row.preferred_time,
-//       requirements: row.requirements,
-//       source_id: row.source_id,
-//       lead_source: row.lead_source,
-//       checkbox_ids: row.checkbox_ids,
-//       created_at: row.created_at,
-//       updated_at: row.updated_at,
-//       likelihood_id: row.likelihood_id,
-//       followUpCount: row.followUpCount || 0,
-//     }));
-    
-//     res.json({ status: true, data });
-//   });
-// });
-
-
-app.get('/api/getleads_wipp', async (req, res) => {
-  try {
-    const userId = req.headers['user-id'];
-    const userPermissions = req.headers['user-permissions'];
-
-    const {
-      createdStartDate,
-      createdEndDate,
-      updatedStartDate,
-      updatedEndDate
-    } = req.query;
-
-    if (!userId || !userPermissions) {
-      return res.status(400).json({ message: 'User ID or permissions not provided' });
-    }
-
-    if (!dbConnection) {
-      return res.status(500).json({ message: 'Database connection not established' });
-    }
-
-    // Base query
-    let query = `
-      SELECT 
-          l.id, 
-          l.assigned_to, 
-          u.username AS assigned_username,
-          l.status AS status_id, 
-          ls.status_name AS status, 
-          l.name, 
-          l.mobile_number, 
-          l.email, 
-          l.city,
-          l.website_type AS website_type_id,
-          l.industry_type AS industry_type_id,
-          st.servicename AS website_type, 
-          it.industryname AS industry_type, 
-          cm.id AS contact_preference_id, 
-          cm.method_name AS contact_preference, 
-          l.preferred_date, 
-          l.preferred_time, 
-          l.requirements, 
-          l.lead_source AS source_id,
-          ls_table.source_name AS lead_source,
-          l.checkbox_ids, 
-          l.created_at, 
-          l.updated_at,
-          l.likelihood_id,
-          COUNT(f.id) AS followUpCount
-      FROM 
-          ekarigar_leads l
-      LEFT JOIN 
-          ekarigar_servicetype st ON l.website_type = st.id
-      LEFT JOIN 
-          ekarigar_industrytype it ON l.industry_type = it.id
-      LEFT JOIN 
-          ekarigar_followups f ON l.id = f.lead_id
-      LEFT JOIN 
-          ekarigar_users u ON l.assigned_to = u.id
-      LEFT JOIN 
-          ekarigar_contact_methods cm ON l.contact_preference = cm.id
-      LEFT JOIN 
-          ekarigar_leads_status ls ON l.status = ls.id
-      LEFT JOIN 
-          ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
-      WHERE 1=1
-    `;
-
-    const queryParams = [];
-
-    // Build date conditions
-    const dateConditions = [];
-
-    if (createdStartDate && createdEndDate) {
-      dateConditions.push(`DATE(l.created_at) BETWEEN ? AND ?`);
-      queryParams.push(createdStartDate, createdEndDate);
-    }
-
-    if (updatedStartDate && updatedEndDate) {
-      dateConditions.push(`DATE(l.updated_at) BETWEEN ? AND ?`);
-      queryParams.push(updatedStartDate, updatedEndDate);
-    }
-
-    // If no date filters, default to current month
-    if (dateConditions.length === 0) {
-      dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
-    }
-
-    if (dateConditions.length > 0) {
-      query += ` AND (${dateConditions.join(' AND ')})`;
-    }
-
-    // Permission-based filtering
-    if (userPermissions !== '1') {
-      query += `
-        AND (
-          l.assigned_to = ? 
-          OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?)
-        )
-      `;
-      queryParams.push(userId, userId);
-    }
-
-    query += ` GROUP BY l.id ORDER BY l.id DESC`;
-
-    console.log('Executing query:', query, queryParams);
-
-    const [results] = await dbConnection.execute(query, queryParams);
-
     const data = results.map(row => ({
       id: row.id,
       assigned_to_id: row.assigned_to,
@@ -4666,140 +4022,69 @@ app.get('/api/getleads_wipp', async (req, res) => {
       likelihood_id: row.likelihood_id,
       followUpCount: row.followUpCount || 0,
     }));
-
-    res.status(200).json({ status: true, data });
-  } catch (err) {
-    console.error('Error fetching leads:', err);
-    res.status(500).json({ message: 'Internal server error' });
-  }
+    
+    res.json({ status: true, data });
+  });
 });
 
 
 
-// app.post('/api/leads', (req, res) => {
-//   const lead = req.body;
+app.post('/api/leads', (req, res) => {
+  const lead = req.body;
   
-//   // Get current timestamp in Indian timezone
-//   const createdAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-//   const updatedAt = createdAt;
+  // Get current timestamp in Indian timezone
+  const createdAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+  const updatedAt = createdAt;
 
-//   // Check if the `selectedCheckboxes` array is empty, and handle it accordingly
-//   const checkboxIds = lead.selectedCheckboxes && lead.selectedCheckboxes.length > 0 
-//     ? lead.selectedCheckboxes.join(',') 
-//     : null;
+  // Check if the `selectedCheckboxes` array is empty, and handle it accordingly
+  const checkboxIds = lead.selectedCheckboxes && lead.selectedCheckboxes.length > 0 
+    ? lead.selectedCheckboxes.join(',') 
+    : null;
 
-//   // Validate assigned_to
-//   if (!lead.assigned_to) {
-//     return res.status(400).json({ 
-//       status: false, 
-//       message: 'Assigned to field is required' 
-//     });
-//   }
+  // Validate assigned_to
+  if (!lead.assigned_to) {
+    return res.status(400).json({ 
+      status: false, 
+      message: 'Assigned to field is required' 
+    });
+  }
 
-//   // Construct the SQL query to insert the lead
-//   const query = `
-//     INSERT INTO ekarigar_leads 
-//     (name, mobile_number, assigned_to, email, city, website_type, industry_type, 
-//      contact_preference, preferred_date, preferred_time, requirements, lead_source, 
-//      checkbox_ids, created_at, updated_at) 
-//     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//   `;
+  // Construct the SQL query to insert the lead
+  const query = `
+    INSERT INTO ekarigar_leads 
+    (name, mobile_number, assigned_to, email, city, website_type, industry_type, 
+     contact_preference, preferred_date, preferred_time, requirements, lead_source, 
+     checkbox_ids, created_at, updated_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
 
-//   const values = [
-//     lead.name,
-//     lead.mobile_number,
-//     lead.assigned_to, // This will now come from the dropdown
-//     lead.email,
-//     lead.city,
-//     lead.service_type,
-//     lead.industry_type,
-//     lead.contact_preference,
-//     lead.preferred_date,
-//     lead.preferred_time_slot,
-//     lead.requirements,
-//     lead.lead_source || 'Manual',
-//     checkboxIds,
-//     createdAt,
-//     updatedAt
-//   ];
+  const values = [
+    lead.name,
+    lead.mobile_number,
+    lead.assigned_to, // This will now come from the dropdown
+    lead.email,
+    lead.city,
+    lead.service_type,
+    lead.industry_type,
+    lead.contact_preference,
+    lead.preferred_date,
+    lead.preferred_time_slot,
+    lead.requirements,
+    lead.lead_source || 'Manual',
+    checkboxIds,
+    createdAt,
+    updatedAt
+  ];
 
-//   connection.query(query, values, (err, result) => {
-//     if (err) {
-//       console.error('Error inserting lead:', err);
-//       return res.status(500).json({ 
-//         status: false, 
-//         message: 'Error saving lead', 
-//         error: err 
-//       });
-//     }
-    
-//     // Return success response with status true
-//     res.status(200).json({ 
-//       status: true, 
-//       message: 'Lead saved successfully', 
-//       id: result.insertId 
-//     });
-//   });
-// });
-
-app.post('/api/leads', async (req, res) => {
-  try {
-    const lead = req.body;
-    
-    if (!dbConnection) {
+  connection.query(query, values, (err, result) => {
+    if (err) {
+      console.error('Error inserting lead:', err);
       return res.status(500).json({ 
-        status: false,
-        message: 'Database connection not established' 
-      });
-    }
-    
-    // Get current timestamp in Indian timezone
-    const createdAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-    const updatedAt = createdAt;
-
-    // Check if the `selectedCheckboxes` array is empty, and handle it accordingly
-    const checkboxIds = lead.selectedCheckboxes && lead.selectedCheckboxes.length > 0 
-      ? lead.selectedCheckboxes.join(',') 
-      : null;
-
-    // Validate assigned_to
-    if (!lead.assigned_to) {
-      return res.status(400).json({ 
         status: false, 
-        message: 'Assigned to field is required' 
+        message: 'Error saving lead', 
+        error: err 
       });
     }
-
-    // Construct the SQL query to insert the lead
-    const query = `
-      INSERT INTO ekarigar_leads 
-      (name, mobile_number, assigned_to, email, city, website_type, industry_type, 
-       contact_preference, preferred_date, preferred_time, requirements, lead_source, 
-       checkbox_ids, created_at, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
-
-    const values = [
-      lead.name,
-      lead.mobile_number,
-      lead.assigned_to, // This will now come from the dropdown
-      lead.email,
-      lead.city,
-      lead.service_type,
-      lead.industry_type,
-      lead.contact_preference,
-      lead.preferred_date,
-      lead.preferred_time_slot,
-      lead.requirements,
-      lead.lead_source || 'Manual',
-      checkboxIds,
-      createdAt,
-      updatedAt
-    ];
-
-    console.log('Executing insert query:', query, values);
-
-    const [result] = await dbConnection.execute(query, values);
     
     // Return success response with status true
     res.status(200).json({ 
@@ -4807,15 +4092,7 @@ app.post('/api/leads', async (req, res) => {
       message: 'Lead saved successfully', 
       id: result.insertId 
     });
-
-  } catch (err) {
-    console.error('Error inserting lead:', err);
-    return res.status(500).json({ 
-      status: false, 
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
-  }
+  });
 });
 
 // app.put('/api/update_leads', (req, res) => {
@@ -4879,178 +4156,78 @@ app.post('/api/leads', async (req, res) => {
 //   });
 // });
 
-// app.put('/api/update_leads', async (req, res) => {
-//   const lead = req.body;
-
-//   // Get current timestamp in Indian timezone for `updated_at`
-//   const updatedAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-
-//   // Function to get the assigned user based on the selected service (website_type)
-//   async function getAssignedUser(serviceId) {
-//     return new Promise((resolve, reject) => {
-//       const query = `
-//         SELECT id
-//         FROM ekarigar_users
-//         WHERE FIND_IN_SET(?, assigned_services) > 0
-//         AND delete_status = '0'
-//         LIMIT 1
-//       `;
-//       connection.query(query, [serviceId], (err, results) => {
-//         if (err) {
-//           reject(err);
-//         } else if (results.length > 0) {
-//           resolve(results[0].id); // Return the user ID of the first match
-//         } else {
-//           resolve(1); // Default to admin if no active user is found (fallback)
-//         }
-//       });
-//     });
-//   }
-
-//   // Get the assigned user based on the website_type (service)
-//   try {
-//     const assignedUser = await getAssignedUser(lead.website_type_id); // Pass website_type_id to get assigned user
-
-//     // Construct the SQL query to update the lead
-//     // const query = `
-//     //   UPDATE ekarigar_leads 
-//     //   SET 
-//     //     name = ?, 
-//     //     mobile_number = ?,
-//     //     email = ?, 
-//     //     city = ?, 
-//     //     website_type = ?, 
-//     //     industry_type = ?, 
-        
-//     //     preferred_date = ?, 
-//     //     preferred_time = ?, 
-//     //     requirements = ?, 
-//     //     lead_source = ?, 
-//     //     assigned_to = ?,  -- Update assigned_to based on the selected service type
-//     //     status = ?,
-//     //     updated_at = ? 
-//     //   WHERE id = ?
-//     // `;
-    
-//     // const values = [
-//     //   lead.name,
-//     //   lead.mobile_number,
-//     //   lead.email,
-//     //   lead.city,
-//     //   lead.website_type_id,  // website_type_id will be used to fetch the assigned user
-//     //   lead.industry_type_id,
-     
-//     //   lead.preferred_date,
-//     //   lead.preferred_time,
-//     //   lead.requirements,
-//     //   lead.source_id || 0, // Use provided lead_source or default to 'Manual'
-//     //   assignedUser, // Update assigned_to with the user assigned to the service type
-//     //   lead.status_id,
-//     //   updatedAt, // Pass Indian timezone formatted timestamp
-//     //   lead.id // ID of the lead to update
-//     // ];
-    
-//      const query = `
-//       UPDATE ekarigar_leads 
-//       SET 
-//         name = ?, 
-//         mobile_number = ?,
-//         email = ?, 
-//         city = ?, 
-//         website_type = ?, 
-//         industry_type = ?, 
-        
-//         preferred_date = ?, 
-//         preferred_time = ?, 
-//         requirements = ?, 
-//         lead_source = ?, 
-        
-//         status = ?,
-//         updated_at = ? 
-//       WHERE id = ?
-//     `;
-
-//     const values = [
-//       lead.name,
-//       lead.mobile_number,
-//       lead.email,
-//       lead.city,
-//       lead.website_type_id,  // website_type_id will be used to fetch the assigned user
-//       lead.industry_type_id,
-     
-//       lead.preferred_date,
-//       lead.preferred_time,
-//       lead.requirements,
-//       lead.source_id || 0, // Use provided lead_source or default to 'Manual'
-      
-//       lead.status_id,
-//       updatedAt, // Pass Indian timezone formatted timestamp
-//       lead.id // ID of the lead to update
-//     ];
-
-//     // Execute the update query
-//     connection.query(query, values, (err, result) => {
-//       if (err) {
-//         console.error('Error updating lead:', err);
-//         return res.status(500).json({ status: false, message: 'Error updating lead', error: err });
-//       }
-
-//       if (result.affectedRows === 0) {
-//         return res.status(404).json({ status: false, message: 'Lead not found' });
-//       }
-
-//       // Return success response with status true
-//       res.status(200).json({ status: true, message: 'Lead updated successfully' });
-//     });
-//   } catch (err) {
-//     console.error('Error fetching assigned user:', err);
-//     res.status(500).json({ status: false, message: 'Error fetching assigned user', error: err });
-//   }
-// });
-
 app.put('/api/update_leads', async (req, res) => {
-  try {
-    const lead = req.body;
+  const lead = req.body;
 
-    if (!dbConnection) {
-      return res.status(500).json({ 
-        status: false,
-        message: 'Database connection not established' 
-      });
-    }
+  // Get current timestamp in Indian timezone for `updated_at`
+  const updatedAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
 
-    // Get current timestamp in Indian timezone for `updated_at`
-    const updatedAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-
-    // Function to get the assigned user based on the selected service (website_type)
-    async function getAssignedUser(serviceId) {
-      try {
-        const query = `
-          SELECT id
-          FROM ekarigar_users
-          WHERE FIND_IN_SET(?, assigned_services) > 0
-          AND delete_status = '0'
-          LIMIT 1
-        `;
-        
-        const [results] = await dbConnection.execute(query, [serviceId]);
-        
-        if (results.length > 0) {
-          return results[0].id; // Return the user ID of the first match
+  // Function to get the assigned user based on the selected service (website_type)
+  async function getAssignedUser(serviceId) {
+    return new Promise((resolve, reject) => {
+      const query = `
+        SELECT id
+        FROM ekarigar_users
+        WHERE FIND_IN_SET(?, assigned_services) > 0
+        AND delete_status = '0'
+        LIMIT 1
+      `;
+      connection.query(query, [serviceId], (err, results) => {
+        if (err) {
+          reject(err);
+        } else if (results.length > 0) {
+          resolve(results[0].id); // Return the user ID of the first match
         } else {
-          return 1; // Default to admin if no active user is found (fallback)
+          resolve(1); // Default to admin if no active user is found (fallback)
         }
-      } catch (err) {
-        console.error('Error fetching assigned user:', err);
-        throw err;
-      }
-    }
+      });
+    });
+  }
 
-    // Get the assigned user based on the website_type (service)
+  // Get the assigned user based on the website_type (service)
+  try {
     const assignedUser = await getAssignedUser(lead.website_type_id); // Pass website_type_id to get assigned user
 
     // Construct the SQL query to update the lead
-    const query = `
+    // const query = `
+    //   UPDATE ekarigar_leads 
+    //   SET 
+    //     name = ?, 
+    //     mobile_number = ?,
+    //     email = ?, 
+    //     city = ?, 
+    //     website_type = ?, 
+    //     industry_type = ?, 
+        
+    //     preferred_date = ?, 
+    //     preferred_time = ?, 
+    //     requirements = ?, 
+    //     lead_source = ?, 
+    //     assigned_to = ?,  -- Update assigned_to based on the selected service type
+    //     status = ?,
+    //     updated_at = ? 
+    //   WHERE id = ?
+    // `;
+    
+    // const values = [
+    //   lead.name,
+    //   lead.mobile_number,
+    //   lead.email,
+    //   lead.city,
+    //   lead.website_type_id,  // website_type_id will be used to fetch the assigned user
+    //   lead.industry_type_id,
+     
+    //   lead.preferred_date,
+    //   lead.preferred_time,
+    //   lead.requirements,
+    //   lead.source_id || 0, // Use provided lead_source or default to 'Manual'
+    //   assignedUser, // Update assigned_to with the user assigned to the service type
+    //   lead.status_id,
+    //   updatedAt, // Pass Indian timezone formatted timestamp
+    //   lead.id // ID of the lead to update
+    // ];
+    
+     const query = `
       UPDATE ekarigar_leads 
       SET 
         name = ?, 
@@ -5059,10 +4236,12 @@ app.put('/api/update_leads', async (req, res) => {
         city = ?, 
         website_type = ?, 
         industry_type = ?, 
+        
         preferred_date = ?, 
         preferred_time = ?, 
         requirements = ?, 
         lead_source = ?, 
+        
         status = ?,
         updated_at = ? 
       WHERE id = ?
@@ -5075,262 +4254,129 @@ app.put('/api/update_leads', async (req, res) => {
       lead.city,
       lead.website_type_id,  // website_type_id will be used to fetch the assigned user
       lead.industry_type_id,
+     
       lead.preferred_date,
       lead.preferred_time,
       lead.requirements,
       lead.source_id || 0, // Use provided lead_source or default to 'Manual'
+      
       lead.status_id,
       updatedAt, // Pass Indian timezone formatted timestamp
       lead.id // ID of the lead to update
     ];
 
-    console.log('Executing update query:', query, values);
-
     // Execute the update query
-    const [result] = await dbConnection.execute(query, values);
+    connection.query(query, values, (err, result) => {
+      if (err) {
+        console.error('Error updating lead:', err);
+        return res.status(500).json({ status: false, message: 'Error updating lead', error: err });
+      }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ 
-        status: false, 
-        message: 'Lead not found' 
-      });
-    }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ status: false, message: 'Lead not found' });
+      }
 
-    // Return success response with status true
-    res.status(200).json({ 
-      status: true, 
-      message: 'Lead updated successfully' 
+      // Return success response with status true
+      res.status(200).json({ status: true, message: 'Lead updated successfully' });
     });
-
   } catch (err) {
-    console.error('Error updating lead:', err);
-    return res.status(500).json({ 
-      status: false, 
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? err.message : undefined
-    });
+    console.error('Error fetching assigned user:', err);
+    res.status(500).json({ status: false, message: 'Error fetching assigned user', error: err });
   }
 });
-
-
-// app.delete('/api/leads/:lead_id', async (req, res) => {
-//     try {
-//         const { lead_id } = req.params;
-
-//         // Validate input
-//         if (!lead_id) {
-//             return res.status(400).json({ message: 'Lead ID is required' });
-//         }
-
-//         // Start transaction
-//         connection.beginTransaction((err) => {
-//             if (err) {
-//                 console.error('Transaction start error:', err);
-//                 return res.status(500).json({ message: 'Internal server error' });
-//             }
-
-//             // Delete follow-ups first
-//             const deleteFollowupsQuery = `DELETE FROM ekarigar_followups WHERE lead_id = ?`;
-
-//             connection.query(deleteFollowupsQuery, [lead_id], (followupErr) => {
-//                 if (followupErr) {
-//                     console.error('Error deleting follow-ups:', followupErr);
-//                     return connection.rollback(() => {
-//                         res.status(500).json({ message: 'Error deleting follow-ups' });
-//                     });
-//                 }
-
-//                 // Delete the lead
-//                 const deleteLeadQuery = `DELETE FROM ekarigar_leads WHERE id = ?`;
-
-//                 connection.query(deleteLeadQuery, [lead_id], (leadErr, result) => {
-//                     if (leadErr) {
-//                         console.error('Error deleting lead:', leadErr);
-//                         return connection.rollback(() => {
-//                             res.status(500).json({ message: 'Error deleting lead' });
-//                         });
-//                     }
-
-//                     // Check if any row was deleted
-//                     if (result.affectedRows === 0) {
-//                         return connection.rollback(() => {
-//                             res.status(404).json({ message: 'Lead not found' });
-//                         });
-//                     }
-
-//                     // Commit transaction
-//                     connection.commit((commitErr) => {
-//                         if (commitErr) {
-//                             console.error('Transaction commit error:', commitErr);
-//                             return connection.rollback(() => {
-//                                 res.status(500).json({ message: 'Error completing delete operation' });
-//                             });
-//                         }
-
-//                         res.status(200).json({ message: 'Lead deleted successfully' });
-//                     });
-//                 });
-//             });
-//         });
-
-//     } catch (error) {
-//         console.error('Unexpected error:', error);
-//         res.status(500).json({ message: 'Unexpected server error' });
-//     }
-// });
 
 
 app.delete('/api/leads/:lead_id', async (req, res) => {
     try {
         const { lead_id } = req.params;
 
-        if (!dbConnection) {
-            return res.status(500).json({ 
-                status: false,
-                message: 'Database connection not established' 
-            });
-        }
-
         // Validate input
         if (!lead_id) {
-            return res.status(400).json({ 
-                status: false,
-                message: 'Lead ID is required' 
-            });
+            return res.status(400).json({ message: 'Lead ID is required' });
         }
-
-        console.log('Deleting lead with ID:', lead_id);
 
         // Start transaction
-        await dbConnection.beginTransaction();
-
-        try {
-            // Delete follow-ups first
-            const deleteFollowupsQuery = `DELETE FROM ekarigar_followups WHERE lead_id = ?`;
-            console.log('Executing delete followups query:', deleteFollowupsQuery, [lead_id]);
-            
-            const [followupResult] = await dbConnection.execute(deleteFollowupsQuery, [lead_id]);
-            console.log('Deleted followups count:', followupResult.affectedRows);
-
-            // Delete the lead
-            const deleteLeadQuery = `DELETE FROM ekarigar_leads WHERE id = ?`;
-            console.log('Executing delete lead query:', deleteLeadQuery, [lead_id]);
-            
-            const [leadResult] = await dbConnection.execute(deleteLeadQuery, [lead_id]);
-
-            // Check if any row was deleted
-            if (leadResult.affectedRows === 0) {
-                await dbConnection.rollback();
-                return res.status(404).json({ 
-                    status: false,
-                    message: 'Lead not found' 
-                });
+        connection.beginTransaction((err) => {
+            if (err) {
+                console.error('Transaction start error:', err);
+                return res.status(500).json({ message: 'Internal server error' });
             }
 
-            // Commit transaction
-            await dbConnection.commit();
-            console.log('Lead deleted successfully, ID:', lead_id);
+            // Delete follow-ups first
+            const deleteFollowupsQuery = `DELETE FROM ekarigar_followups WHERE lead_id = ?`;
 
-            res.status(200).json({ 
-                status: true,
-                message: 'Lead deleted successfully' 
+            connection.query(deleteFollowupsQuery, [lead_id], (followupErr) => {
+                if (followupErr) {
+                    console.error('Error deleting follow-ups:', followupErr);
+                    return connection.rollback(() => {
+                        res.status(500).json({ message: 'Error deleting follow-ups' });
+                    });
+                }
+
+                // Delete the lead
+                const deleteLeadQuery = `DELETE FROM ekarigar_leads WHERE id = ?`;
+
+                connection.query(deleteLeadQuery, [lead_id], (leadErr, result) => {
+                    if (leadErr) {
+                        console.error('Error deleting lead:', leadErr);
+                        return connection.rollback(() => {
+                            res.status(500).json({ message: 'Error deleting lead' });
+                        });
+                    }
+
+                    // Check if any row was deleted
+                    if (result.affectedRows === 0) {
+                        return connection.rollback(() => {
+                            res.status(404).json({ message: 'Lead not found' });
+                        });
+                    }
+
+                    // Commit transaction
+                    connection.commit((commitErr) => {
+                        if (commitErr) {
+                            console.error('Transaction commit error:', commitErr);
+                            return connection.rollback(() => {
+                                res.status(500).json({ message: 'Error completing delete operation' });
+                            });
+                        }
+
+                        res.status(200).json({ message: 'Lead deleted successfully' });
+                    });
+                });
             });
-
-        } catch (transactionError) {
-            // Rollback transaction on any error
-            await dbConnection.rollback();
-            console.error('Transaction error:', transactionError);
-            throw transactionError;
-        }
+        });
 
     } catch (error) {
-        console.error('Error deleting lead:', error);
-        res.status(500).json({ 
-            status: false,
-            message: 'Internal server error',
-            error: process.env.NODE_ENV === 'development' ? error.message : undefined
-        });
+        console.error('Unexpected error:', error);
+        res.status(500).json({ message: 'Unexpected server error' });
     }
 });
 
 
+
 // API Route
-// app.post('/api/saveFollowUp', upload.single('followup_doc'), (req, res) => {
+app.post('/api/saveFollowUp', upload.single('followup_doc'), (req, res) => {
     
-//     // const { lead_id, description, medium, followup_date, attended_by, assign_to, followup_doc_description } = req.body;
-//     // const file = req.file;
+    // const { lead_id, description, medium, followup_date, attended_by, assign_to, followup_doc_description } = req.body;
+    // const file = req.file;
     
-//     // console.log(req.body);
-//   try {
-//     const { lead_id, description, medium, followup_date, attended_by, assign_to, followup_doc_description } = req.body;
-//     const file = req.file;
-    
-// //     [Object: null prototype] {
-// //   lead_id: '221',
-// //   description: 'Officiis duis occaec',
-// //   medium: 'meeting',
-// //   attended_by: '1',
-// //   followup_date: '2000-04-10T10:19',
-// //   followup_doc_description: 'Labore animi velit '
-// // }
-
-//     // Validate required fields
-//     if (!lead_id || !description || !medium  || !attended_by ) {
-//       return res.status(400).json({ status: 'error', message: 'Missing required fields' });
-//     }
-
-//     // Prepare the file path if file is uploaded
-//     let filePath = null;
-//     if (file) {
-//       filePath = `/uploads/${file.filename}`;
-//     }
-
-//     // Generate current timestamps
-//     const created_at = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-//     const updated_at = created_at;
-
-//     // Insert data into the database
-//     const query = `
-//       INSERT INTO ekarigar_followups (lead_id, description, medium, attended_by, followup_doc_description, followup_doc, followup_date, created_at, updated_at)
-//       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-//     `;
-//     const values = [lead_id, description, medium, attended_by, followup_doc_description, filePath, followup_date, created_at, updated_at];
-
-//     connection.query(query, values, (err, result) => {
-//       if (err) {
-//         console.error('Database error:', err);
-//         return res.status(500).json({ status: 'error', message: 'Failed to save follow-up' });
-//       }
-
-//       res.json({ status: 'success', message: 'Follow-up saved successfully', id: result.insertId });
-//     });
-//   } catch (error) {
-//     console.error('Error in saveFollowUp API:', error);
-//     res.status(500).json({ status: 'error', message: 'An unexpected error occurred' });
-//   }
-// });
-
-app.post('/api/saveFollowUp', upload.single('followup_doc'), async (req, res) => {
+    // console.log(req.body);
   try {
     const { lead_id, description, medium, followup_date, attended_by, assign_to, followup_doc_description } = req.body;
     const file = req.file;
     
-    if (!dbConnection) {
-      return res.status(500).json({ 
-        status: false,
-        message: 'Database connection not established' 
-      });
-    }
-
-    console.log('Follow-up request body:', req.body);
-    console.log('Uploaded file:', file);
+//     [Object: null prototype] {
+//   lead_id: '221',
+//   description: 'Officiis duis occaec',
+//   medium: 'meeting',
+//   attended_by: '1',
+//   followup_date: '2000-04-10T10:19',
+//   followup_doc_description: 'Labore animi velit '
+// }
 
     // Validate required fields
-    if (!lead_id || !description || !medium || !attended_by) {
-      return res.status(400).json({ 
-        status: false, 
-        message: 'Missing required fields' 
-      });
+    if (!lead_id || !description || !medium  || !attended_by ) {
+      return res.status(400).json({ status: 'error', message: 'Missing required fields' });
     }
 
     // Prepare the file path if file is uploaded
@@ -5348,39 +4394,21 @@ app.post('/api/saveFollowUp', upload.single('followup_doc'), async (req, res) =>
       INSERT INTO ekarigar_followups (lead_id, description, medium, attended_by, followup_doc_description, followup_doc, followup_date, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
-    
-    const values = [
-      lead_id, 
-      description, 
-      medium, 
-      attended_by, 
-      followup_doc_description, 
-      filePath, 
-      followup_date, 
-      created_at, 
-      updated_at
-    ];
+    const values = [lead_id, description, medium, attended_by, followup_doc_description, filePath, followup_date, created_at, updated_at];
 
-    console.log('Executing insert followup query:', query, values);
+    connection.query(query, values, (err, result) => {
+      if (err) {
+        console.error('Database error:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to save follow-up' });
+      }
 
-    const [result] = await dbConnection.execute(query, values);
-
-    res.status(200).json({ 
-      status: true, 
-      message: 'Follow-up saved successfully', 
-      id: result.insertId 
+      res.json({ status: 'success', message: 'Follow-up saved successfully', id: result.insertId });
     });
-
   } catch (error) {
     console.error('Error in saveFollowUp API:', error);
-    res.status(500).json({ 
-      status: false, 
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.status(500).json({ status: 'error', message: 'An unexpected error occurred' });
   }
 });
-
 // app.get('/api/get_followups', (req, res) => {
 //   const leadId = req.query.lead_id; // Getting lead_id from the query parameter
 
@@ -5741,35 +4769,11 @@ app.post('/api/saveFollowUp', upload.single('followup_doc'), async (req, res) =>
 // });
 
 
-// app.get('/api/get_followups', (req, res) => {
-//   const leadId = req.query.lead_id; // Getting lead_id from the query parameter
+app.get('/api/get_followups', (req, res) => {
+  const leadId = req.query.lead_id; // Getting lead_id from the query parameter
 
-//   // Query to get lead details, including checkbox options
-// //   const leadQuery = `
-// //     SELECT 
-// //       leads.id AS lead_id,
-// //       leads.name AS lead_name,
-// //       leads.mobile_number,
-// //       leads.email AS lead_email,
-// //       leads.city,
-// //       leads.website_type,
-// //       leads.industry_type,
-// //       leads.contact_preference,
-// //       leads.checkbox_ids, 
-// //       leads.requirements,
-// //       s.servicename AS website_type_name,
-// //       i.industryname AS industry_type_name,
-// //       GROUP_CONCAT(cb.option_name) AS checkbox_options
-// //     FROM ekarigar_leads leads
-// //     LEFT JOIN ekarigar_servicetype s ON leads.website_type = s.id
-// //     LEFT JOIN ekarigar_industrytype i ON leads.industry_type = i.id
-// //     LEFT JOIN ekarigar_lead_checkbox cb 
-// //       ON FIND_IN_SET(cb.id, leads.checkbox_ids) > 0
-// //     WHERE leads.id = ?
-// //     GROUP BY leads.id
-// //   `;
-
-// const leadQuery = `
+  // Query to get lead details, including checkbox options
+//   const leadQuery = `
 //     SELECT 
 //       leads.id AS lead_id,
 //       leads.name AS lead_name,
@@ -5781,194 +4785,82 @@ app.post('/api/saveFollowUp', upload.single('followup_doc'), async (req, res) =>
 //       leads.contact_preference,
 //       leads.checkbox_ids, 
 //       leads.requirements,
-//       leads.lead_source,
-//       leads.likelihood_id,
-//       ids.source_name AS lead_source_name,
-//       sts.id AS lead_status,
 //       s.servicename AS website_type_name,
 //       i.industryname AS industry_type_name,
 //       GROUP_CONCAT(cb.option_name) AS checkbox_options
 //     FROM ekarigar_leads leads
 //     LEFT JOIN ekarigar_servicetype s ON leads.website_type = s.id
 //     LEFT JOIN ekarigar_industrytype i ON leads.industry_type = i.id
-//     LEFT JOIN ekarigar_lead_source ids ON leads.lead_source = ids.id
-//     LEFT JOIN ekarigar_leads_status sts ON leads.status = sts.id
 //     LEFT JOIN ekarigar_lead_checkbox cb 
 //       ON FIND_IN_SET(cb.id, leads.checkbox_ids) > 0
 //     WHERE leads.id = ?
-//     GROUP BY leads.id;
-
+//     GROUP BY leads.id
 //   `;
+
+const leadQuery = `
+    SELECT 
+      leads.id AS lead_id,
+      leads.name AS lead_name,
+      leads.mobile_number,
+      leads.email AS lead_email,
+      leads.city,
+      leads.website_type,
+      leads.industry_type,
+      leads.contact_preference,
+      leads.checkbox_ids, 
+      leads.requirements,
+      leads.lead_source,
+      leads.likelihood_id,
+      ids.source_name AS lead_source_name,
+      sts.id AS lead_status,
+      s.servicename AS website_type_name,
+      i.industryname AS industry_type_name,
+      GROUP_CONCAT(cb.option_name) AS checkbox_options
+    FROM ekarigar_leads leads
+    LEFT JOIN ekarigar_servicetype s ON leads.website_type = s.id
+    LEFT JOIN ekarigar_industrytype i ON leads.industry_type = i.id
+    LEFT JOIN ekarigar_lead_source ids ON leads.lead_source = ids.id
+    LEFT JOIN ekarigar_leads_status sts ON leads.status = sts.id
+    LEFT JOIN ekarigar_lead_checkbox cb 
+      ON FIND_IN_SET(cb.id, leads.checkbox_ids) > 0
+    WHERE leads.id = ?
+    GROUP BY leads.id;
+
+  `;
   
  
 
-//   // Query to get follow-up details
-//   const followUpQuery = `
-//     SELECT 
-//       followups.id AS followup_id,
-//       followups.lead_id,
-//       followups.description,
-//       followups.medium,
-//       followups.attended_by,
-//       followups.assign_to,
-//       followups.followup_date,
-//       followups.created_at,
-//       followups.updated_at,
-//       followups.followup_doc_description,
-//       followups.followup_doc,
-//       users.username AS attended_by_name
-//     FROM ekarigar_followups followups
-//     LEFT JOIN ekarigar_users users ON followups.attended_by = users.id
-//     WHERE followups.lead_id = ?
-//     ORDER BY followups.followup_date DESC
-//   `;
+  // Query to get follow-up details
+  const followUpQuery = `
+    SELECT 
+      followups.id AS followup_id,
+      followups.lead_id,
+      followups.description,
+      followups.medium,
+      followups.attended_by,
+      followups.assign_to,
+      followups.followup_date,
+      followups.created_at,
+      followups.updated_at,
+      followups.followup_doc_description,
+      followups.followup_doc,
+      users.username AS attended_by_name
+    FROM ekarigar_followups followups
+    LEFT JOIN ekarigar_users users ON followups.attended_by = users.id
+    WHERE followups.lead_id = ?
+    ORDER BY followups.followup_date DESC
+  `;
 
-//   // Fetch lead details first
-//   connection.query(leadQuery, [leadId], (error, leadResults) => {
-//     if (error) {
-//       console.error('Error fetching lead details:', error);
-//       return res.status(500).json({ status: false, error: 'Error fetching lead details' });
-//     }
-
-//     // Check if the lead exists
-//     if (leadResults.length === 0) {
-//       return res.status(404).json({ status: false, error: 'Lead not found' });
-//     }
-
-//     const leadDetails = {
-//       lead_id: leadResults[0].lead_id,
-//       lead_name: leadResults[0].lead_name,
-//       mobile_number: leadResults[0].mobile_number,
-//       lead_email: leadResults[0].lead_email,
-//       city: leadResults[0].city,
-//       website_type: leadResults[0].website_type,
-//       industry_type: leadResults[0].industry_type,
-//       contact_preference: leadResults[0].contact_preference,
-//       website_type_name: leadResults[0].website_type_name,
-//       industry_type_name: leadResults[0].industry_type_name,
-//       source:leadResults[0].lead_source_name,
-//       lead_descp: leadResults[0].requirements,
-//       lead_status: leadResults[0].lead_status,
-//       lead_likelihood: leadResults[0].likelihood_id,
-//       checkbox_options: leadResults[0].checkbox_options ? leadResults[0].checkbox_options.split(',') : [] // Split options into an array
-//     };
-
-//     // Fetch follow-up details
-//     connection.query(followUpQuery, [leadId], (error, followUpResults) => {
-//       if (error) {
-//         console.error('Error fetching follow-up details:', error);
-//         return res.status(500).json({ status: false, error: 'Error fetching follow-up details' });
-//       }
-
-//       // Map follow-up results to desired structure
-//       const followups = followUpResults.map(followup => ({
-//         followup_id: followup.followup_id,
-//         description: followup.description,
-//         medium: followup.medium,
-//         attended_by: followup.attended_by,
-//         attended_by_name: followup.attended_by_name,
-//         followup_date: followup.followup_date,
-//         created_at: followup.created_at,
-//         updated_at: followup.updated_at,
-//         followup_doc_description: followup.followup_doc_description, // Document description
-//         followup_doc: followup.followup_doc // Document file path
-//       }));
-
-//       // Return response with lead details and follow-up history
-//       return res.json({
-//         status: true,
-//         lead: leadDetails,
-//         followups: followups // Include follow-ups with documents and descriptions
-//       });
-//     });
-//   });
-// });
-
-
-app.get('/api/get_followups', async (req, res) => {
-  try {
-    const leadId = req.query.lead_id; // Getting lead_id from the query parameter
-
-    if (!dbConnection) {
-      return res.status(500).json({ 
-        status: false,
-        message: 'Database connection not established' 
-      });
+  // Fetch lead details first
+  connection.query(leadQuery, [leadId], (error, leadResults) => {
+    if (error) {
+      console.error('Error fetching lead details:', error);
+      return res.status(500).json({ status: false, error: 'Error fetching lead details' });
     }
-
-    // Validate lead_id parameter
-    if (!leadId) {
-      return res.status(400).json({ 
-        status: false, 
-        message: 'Lead ID is required' 
-      });
-    }
-
-    console.log('Fetching followups for lead ID:', leadId);
-
-    // Query to get lead details, including checkbox options
-    const leadQuery = `
-      SELECT 
-        leads.id AS lead_id,
-        leads.name AS lead_name,
-        leads.mobile_number,
-        leads.email AS lead_email,
-        leads.city,
-        leads.website_type,
-        leads.industry_type,
-        leads.contact_preference,
-        leads.checkbox_ids, 
-        leads.requirements,
-        leads.lead_source,
-        leads.likelihood_id,
-        ids.source_name AS lead_source_name,
-        sts.id AS lead_status,
-        s.servicename AS website_type_name,
-        i.industryname AS industry_type_name,
-        GROUP_CONCAT(cb.option_name) AS checkbox_options
-      FROM ekarigar_leads leads
-      LEFT JOIN ekarigar_servicetype s ON leads.website_type = s.id
-      LEFT JOIN ekarigar_industrytype i ON leads.industry_type = i.id
-      LEFT JOIN ekarigar_lead_source ids ON leads.lead_source = ids.id
-      LEFT JOIN ekarigar_leads_status sts ON leads.status = sts.id
-      LEFT JOIN ekarigar_lead_checkbox cb 
-        ON FIND_IN_SET(cb.id, leads.checkbox_ids) > 0
-      WHERE leads.id = ?
-      GROUP BY leads.id
-    `;
-
-    // Query to get follow-up details
-    const followUpQuery = `
-      SELECT 
-        followups.id AS followup_id,
-        followups.lead_id,
-        followups.description,
-        followups.medium,
-        followups.attended_by,
-        followups.assign_to,
-        followups.followup_date,
-        followups.created_at,
-        followups.updated_at,
-        followups.followup_doc_description,
-        followups.followup_doc,
-        users.username AS attended_by_name
-      FROM ekarigar_followups followups
-      LEFT JOIN ekarigar_users users ON followups.attended_by = users.id
-      WHERE followups.lead_id = ?
-      ORDER BY followups.followup_date DESC
-    `;
-
-    console.log('Executing lead query:', leadQuery, [leadId]);
-
-    // Fetch lead details first
-    const [leadResults] = await dbConnection.execute(leadQuery, [leadId]);
 
     // Check if the lead exists
     if (leadResults.length === 0) {
-      return res.status(404).json({ 
-        status: false, 
-        message: 'Lead not found' 
-      });
+      return res.status(404).json({ status: false, error: 'Lead not found' });
     }
 
     const leadDetails = {
@@ -5982,135 +4874,58 @@ app.get('/api/get_followups', async (req, res) => {
       contact_preference: leadResults[0].contact_preference,
       website_type_name: leadResults[0].website_type_name,
       industry_type_name: leadResults[0].industry_type_name,
-      source: leadResults[0].lead_source_name,
+      source:leadResults[0].lead_source_name,
       lead_descp: leadResults[0].requirements,
       lead_status: leadResults[0].lead_status,
       lead_likelihood: leadResults[0].likelihood_id,
       checkbox_options: leadResults[0].checkbox_options ? leadResults[0].checkbox_options.split(',') : [] // Split options into an array
     };
 
-    console.log('Executing followup query:', followUpQuery, [leadId]);
-
     // Fetch follow-up details
-    const [followUpResults] = await dbConnection.execute(followUpQuery, [leadId]);
+    connection.query(followUpQuery, [leadId], (error, followUpResults) => {
+      if (error) {
+        console.error('Error fetching follow-up details:', error);
+        return res.status(500).json({ status: false, error: 'Error fetching follow-up details' });
+      }
 
-    // Map follow-up results to desired structure
-    const followups = followUpResults.map(followup => ({
-      followup_id: followup.followup_id,
-      description: followup.description,
-      medium: followup.medium,
-      attended_by: followup.attended_by,
-      attended_by_name: followup.attended_by_name,
-      followup_date: followup.followup_date,
-      created_at: followup.created_at,
-      updated_at: followup.updated_at,
-      followup_doc_description: followup.followup_doc_description, // Document description
-      followup_doc: followup.followup_doc // Document file path
-    }));
+      // Map follow-up results to desired structure
+      const followups = followUpResults.map(followup => ({
+        followup_id: followup.followup_id,
+        description: followup.description,
+        medium: followup.medium,
+        attended_by: followup.attended_by,
+        attended_by_name: followup.attended_by_name,
+        followup_date: followup.followup_date,
+        created_at: followup.created_at,
+        updated_at: followup.updated_at,
+        followup_doc_description: followup.followup_doc_description, // Document description
+        followup_doc: followup.followup_doc // Document file path
+      }));
 
-    console.log(`Found ${followups.length} followups for lead ${leadId}`);
-
-    // Return response with lead details and follow-up history
-    return res.status(200).json({
-      status: true,
-      lead: leadDetails,
-      followups: followups // Include follow-ups with documents and descriptions
+      // Return response with lead details and follow-up history
+      return res.json({
+        status: true,
+        lead: leadDetails,
+        followups: followups // Include follow-ups with documents and descriptions
+      });
     });
-
-  } catch (error) {
-    console.error('Error fetching followups:', error);
-    res.status(500).json({ 
-      status: false, 
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
+  });
 });
 
 
 //--------------------------------------------wordpress form--------------------------------------------
 
 // // Save Form Data API
-// app.post('/api/save-form-data_pause', async (req, res) => {
-//   try {
-//     const formData = req.body;  // Incoming data from form submission
-
-//     // Map the data asynchronously
-//     const mappedData = await mapFormData(formData);
-
-//     // Validate required fields
-//     if (!mappedData.name || !mappedData.mobile_number || !mappedData.email || !mappedData.city) {
-//       return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
-//     }
-
-//     // Prepare values for insertion into the database
-//     const created_at = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-//     const updated_at = created_at;
-
-//     // Modify selectedCheckboxes to store as "1,2,3" (without quotes around numbers)
-//     const checkboxValues = mappedData.selectedCheckboxes;
-
-//     // Insert query to save the data
-//     const query = `
-//       INSERT INTO ekarigar_leads (name, assigned_to, mobile_number, email, city, website_type, industry_type, contact_preference, preferred_date, preferred_time, lead_source, checkbox_ids, created_at, updated_at)
-//       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//     `;
-
-//     const values = [
-//       mappedData.name,
-//       mappedData.assigned_to,
-//       mappedData.mobile_number,
-//       mappedData.email,
-//       mappedData.city,
-//       mappedData.service_type,
-//       mappedData.industry_type,
-//       mappedData.contact_preference,
-//       mappedData.preferred_date,
-//       mappedData.preferred_time_slot,
-//       mappedData.lead_source,
-//       checkboxValues,
-//       created_at,
-//       updated_at
-//     ];
-
-//     // Execute the query to insert data into the database
-//     connection.query(query, values, (err, result) => {
-//       if (err) {
-//         console.error('Error saving form data:', err);
-//         return res.status(500).json({ status: 'error', message: 'Failed to save form data' });
-//       }
-
-//       res.json({ status: 'success', message: 'Form data saved successfully', id: result.insertId });
-//     });
-//   } catch (error) {
-//     console.error('Error processing form data:', error);
-//     res.status(500).json({ status: 'error', message: 'Internal server error' });
-//   }
-// });
-
 app.post('/api/save-form-data_pause', async (req, res) => {
   try {
     const formData = req.body;  // Incoming data from form submission
 
-    if (!dbConnection) {
-      return res.status(500).json({ 
-        status: false,
-        message: 'Database connection not established' 
-      });
-    }
-
-    console.log('Form data received:', formData);
-
     // Map the data asynchronously
     const mappedData = await mapFormData(formData);
-    console.log('Mapped data:', mappedData);
 
     // Validate required fields
     if (!mappedData.name || !mappedData.mobile_number || !mappedData.email || !mappedData.city) {
-      return res.status(400).json({ 
-        status: false, 
-        message: 'Invalid data provided' 
-      });
+      return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
     }
 
     // Prepare values for insertion into the database
@@ -6143,24 +4958,18 @@ app.post('/api/save-form-data_pause', async (req, res) => {
       updated_at
     ];
 
-    console.log('Executing insert form data query:', query, values);
-
     // Execute the query to insert data into the database
-    const [result] = await dbConnection.execute(query, values);
+    connection.query(query, values, (err, result) => {
+      if (err) {
+        console.error('Error saving form data:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to save form data' });
+      }
 
-    res.status(200).json({ 
-      status: true, 
-      message: 'Form data saved successfully', 
-      id: result.insertId 
+      res.json({ status: 'success', message: 'Form data saved successfully', id: result.insertId });
     });
-
   } catch (error) {
     console.error('Error processing form data:', error);
-    res.status(500).json({ 
-      status: false, 
-      message: 'Internal server error',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
+    res.status(500).json({ status: 'error', message: 'Internal server error' });
   }
 });
 
@@ -6289,102 +5098,10 @@ app.post('/api/save-form-data_pause', async (req, res) => {
 //   }
 // });
 
-// app.post('/api/save-form-data', async (req, res) => {
-//   try {
-//     const formData = req.body;
-
-//     const mappedData = await mapFormData(formData);
-
-//     // Validate required fields
-//     if (!mappedData.name || !mappedData.mobile_number || !mappedData.email || !mappedData.city) {
-//       return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
-//     }
-
-//     const created_at = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-//     const updated_at = created_at;
-
-//     const checkboxValues = mappedData.selectedCheckboxes;
-
-//     // const query = `
-//     //   INSERT INTO ekarigar_leads_dummy (name, assigned_to, mobile_number, email, city, website_type, industry_type, contact_preference, preferred_date, preferred_time, lead_source, checkbox_ids, created_at, updated_at)
-//     //   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//     // `;
-    
-//      const query = `
-//       INSERT INTO ekarigar_leads (name, assigned_to, mobile_number, email, city, website_type, industry_type, contact_preference, preferred_date, preferred_time, lead_source, checkbox_ids, created_at, updated_at)
-//       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-//     `;
-
-//     const values = [
-//       mappedData.name,
-//       mappedData.assigned_to,
-//       mappedData.mobile_number,
-//       mappedData.email,
-//       mappedData.city,
-//       mappedData.service_type,
-//       mappedData.industry_type,
-//       mappedData.contact_preference,
-//       mappedData.preferred_date,
-//       mappedData.preferred_time_slot,
-//       mappedData.lead_source,
-//       checkboxValues,
-//       created_at,
-//       updated_at
-//     ];
-
-//     connection.query(query, values, async (err, result) => {
-//       if (err) {
-//         console.error('Error saving form data:', err);
-//         return res.status(500).json({ status: 'error', message: 'Failed to save form data' });
-//       }
-
-//       // Prepare payload for 3rd-party API
-//       const thirdPartyPayload = {
-//         name: mappedData.name,
-//         assigned_to: mappedData.assigned_to,
-//         mobile_number: mappedData.mobile_number,
-//         email: mappedData.email,
-//         city: mappedData.city,
-//         website_type: mappedData.service_type,
-//         industry_type: mappedData.industry_type,
-//         contact_preference: mappedData.contact_preference,
-//         preferred_date: mappedData.preferred_date,
-//         preferred_time_slot: mappedData.preferred_time_slot,
-//         lead_source: mappedData.lead_source,
-//         checkbox_ids: checkboxValues,
-//         created_at,
-//         updated_at,
-//       };
-
-//       try {
-//         // Call the third-party API
-//         const apiResponse = await axios.post('https://shopify-backend-sand.vercel.app/send_lead_email', thirdPartyPayload);
-//         console.log('3rd party API response:', apiResponse.data);
-//       } catch (apiErr) {
-//         console.error('Failed to send data to 3rd-party API:', apiErr);
-//         // You can choose to continue or return an error here based on your requirements
-//       }
-
-//       res.json({ status: 'success', message: 'Form data saved successfully', id: result.insertId });
-//     });
-
-//   } catch (error) {
-//     console.error('Error processing form data:', error);
-//     res.status(500).json({ status: 'error', message: 'Internal server error' });
-//   }
-// });
-
-
 app.post('/api/save-form-data', async (req, res) => {
   try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
-    }
-
     const formData = req.body;
+
     const mappedData = await mapFormData(formData);
 
     // Validate required fields
@@ -6394,9 +5111,15 @@ app.post('/api/save-form-data', async (req, res) => {
 
     const created_at = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
     const updated_at = created_at;
+
     const checkboxValues = mappedData.selectedCheckboxes;
 
-    const query = `
+    // const query = `
+    //   INSERT INTO ekarigar_leads_dummy (name, assigned_to, mobile_number, email, city, website_type, industry_type, contact_preference, preferred_date, preferred_time, lead_source, checkbox_ids, created_at, updated_at)
+    //   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    // `;
+    
+     const query = `
       INSERT INTO ekarigar_leads (name, assigned_to, mobile_number, email, city, website_type, industry_type, contact_preference, preferred_date, preferred_time, lead_source, checkbox_ids, created_at, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
@@ -6418,36 +5141,41 @@ app.post('/api/save-form-data', async (req, res) => {
       updated_at
     ];
 
-    const [result] = await dbConnection.execute(query, values);
+    connection.query(query, values, async (err, result) => {
+      if (err) {
+        console.error('Error saving form data:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to save form data' });
+      }
 
-    // Prepare payload for 3rd-party API
-    const thirdPartyPayload = {
-      name: mappedData.name,
-      assigned_to: mappedData.assigned_to,
-      mobile_number: mappedData.mobile_number,
-      email: mappedData.email,
-      city: mappedData.city,
-      website_type: mappedData.service_type,
-      industry_type: mappedData.industry_type,
-      contact_preference: mappedData.contact_preference,
-      preferred_date: mappedData.preferred_date,
-      preferred_time_slot: mappedData.preferred_time_slot,
-      lead_source: mappedData.lead_source,
-      checkbox_ids: checkboxValues,
-      created_at,
-      updated_at,
-    };
+      // Prepare payload for 3rd-party API
+      const thirdPartyPayload = {
+        name: mappedData.name,
+        assigned_to: mappedData.assigned_to,
+        mobile_number: mappedData.mobile_number,
+        email: mappedData.email,
+        city: mappedData.city,
+        website_type: mappedData.service_type,
+        industry_type: mappedData.industry_type,
+        contact_preference: mappedData.contact_preference,
+        preferred_date: mappedData.preferred_date,
+        preferred_time_slot: mappedData.preferred_time_slot,
+        lead_source: mappedData.lead_source,
+        checkbox_ids: checkboxValues,
+        created_at,
+        updated_at,
+      };
 
-    try {
-      // Call the third-party API
-      const apiResponse = await axios.post('https://shopify-backend-sand.vercel.app/send_lead_email', thirdPartyPayload);
-      console.log('3rd party API response:', apiResponse.data);
-    } catch (apiErr) {
-      console.error('Failed to send data to 3rd-party API:', apiErr);
-      // Continue execution even if API call fails
-    }
+      try {
+        // Call the third-party API
+        const apiResponse = await axios.post('https://shopify-backend-sand.vercel.app/send_lead_email', thirdPartyPayload);
+        console.log('3rd party API response:', apiResponse.data);
+      } catch (apiErr) {
+        console.error('Failed to send data to 3rd-party API:', apiErr);
+        // You can choose to continue or return an error here based on your requirements
+      }
 
-    res.json({ status: 'success', message: 'Form data saved successfully', id: result.insertId });
+      res.json({ status: 'success', message: 'Form data saved successfully', id: result.insertId });
+    });
 
   } catch (error) {
     console.error('Error processing form data:', error);
@@ -6458,140 +5186,67 @@ app.post('/api/save-form-data', async (req, res) => {
 
 
 
+
+
+
 //-------------------------------------------------usermanagement apis--------------------------------------
-// app.get('/api/get_usertable', (req, res) => {
-//   const query = `
-//     SELECT 
-//       u.id AS user_id,
-//       u.username,
-//       u.email,
-//       u.password,
-//       u.last_login,
-//       r.role_name,
-//       u.created_at,
-//       IFNULL(GROUP_CONCAT(DISTINCT s.servicename), '') AS assigned_services,
-//       IFNULL(GROUP_CONCAT(DISTINCT p.permission_name), '') AS permissions
-//     FROM ekarigar_users u
-//     LEFT JOIN ekarigar_roles r ON u.role_id = r.id
-//     LEFT JOIN ekarigar_servicetype s ON FIND_IN_SET(s.id, u.assigned_services)
-//     LEFT JOIN ekarigar_permissions p ON FIND_IN_SET(p.id, u.permissions)
-//     WHERE u.delete_status = '0' 
-//     GROUP BY u.id;
-//   `;
+app.get('/api/get_usertable', (req, res) => {
+  const query = `
+    SELECT 
+      u.id AS user_id,
+      u.username,
+      u.email,
+      u.password,
+      u.last_login,
+      r.role_name,
+      u.created_at,
+      IFNULL(GROUP_CONCAT(DISTINCT s.servicename), '') AS assigned_services,
+      IFNULL(GROUP_CONCAT(DISTINCT p.permission_name), '') AS permissions
+    FROM ekarigar_users u
+    LEFT JOIN ekarigar_roles r ON u.role_id = r.id
+    LEFT JOIN ekarigar_servicetype s ON FIND_IN_SET(s.id, u.assigned_services)
+    LEFT JOIN ekarigar_permissions p ON FIND_IN_SET(p.id, u.permissions)
+    WHERE u.delete_status = '0' 
+    GROUP BY u.id;
+  `;
 
-//   connection.query(query, (error, results) => {
-//     if (error) {
-//       console.error('Error fetching users:', error);
-//       return res.status(500).json({ status: false, error: 'Database query failed' });
-//     }
-    
-//     res.json({ status: true, data: results });
-//   });
-// });
-
-app.get('/api/get_usertable', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  connection.query(query, (error, results) => {
+    if (error) {
+      console.error('Error fetching users:', error);
+      return res.status(500).json({ status: false, error: 'Database query failed' });
     }
-
-    const query = `
-      SELECT 
-        u.id AS user_id,
-        u.username,
-        u.email,
-        u.password,
-        u.last_login,
-        r.role_name,
-        u.created_at,
-        IFNULL(GROUP_CONCAT(DISTINCT s.servicename), '') AS assigned_services,
-        IFNULL(GROUP_CONCAT(DISTINCT p.permission_name), '') AS permissions
-      FROM ekarigar_users u
-      LEFT JOIN ekarigar_roles r ON u.role_id = r.id
-      LEFT JOIN ekarigar_servicetype s ON FIND_IN_SET(s.id, u.assigned_services)
-      LEFT JOIN ekarigar_permissions p ON FIND_IN_SET(p.id, u.permissions)
-      WHERE u.delete_status = '0' 
-      GROUP BY u.id;
-    `;
-
-    const [results] = await dbConnection.execute(query);
-
+    
     res.json({ status: true, data: results });
-
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).json({ status: false, message: 'Internal server error' });
-  }
+  });
 });
 
 
 
-// app.get('/api/user/:id', (req, res) => {
-//   const userId = req.params.id;
-//   const query = `
-//     SELECT 
-//       u.id AS user_id,
-//       u.username,
-//       u.email,
-//       u.password,
-//       r.role_name,
-//       u.created_at,
-//       GROUP_CONCAT(s.servicename) AS assigned_services
-//     FROM ekarigar_users u
-//     LEFT JOIN ekarigar_roles r ON u.role_id = r.id
-//     LEFT JOIN ekarigar_servicetype s ON FIND_IN_SET(s.id, u.assigned_services)
-//     WHERE u.id = ?
-//     GROUP BY u.id;
-//   `;
 
-//   connection.query(query, [userId], (error, results) => {
-//     if (error) {
-//       console.error('Error fetching user details:', error);
-//       return res.status(500).json({ status: false, error: 'Database query failed' });
-//     }
-    
-//     if (results.length === 0) {
-//       return res.status(404).json({ status: false, message: 'User not found' });
-//     }
+app.get('/api/user/:id', (req, res) => {
+  const userId = req.params.id;
+  const query = `
+    SELECT 
+      u.id AS user_id,
+      u.username,
+      u.email,
+      u.password,
+      r.role_name,
+      u.created_at,
+      GROUP_CONCAT(s.servicename) AS assigned_services
+    FROM ekarigar_users u
+    LEFT JOIN ekarigar_roles r ON u.role_id = r.id
+    LEFT JOIN ekarigar_servicetype s ON FIND_IN_SET(s.id, u.assigned_services)
+    WHERE u.id = ?
+    GROUP BY u.id;
+  `;
 
-//     const user = results[0];
-//     user.assigned_services = user.assigned_services ? user.assigned_services.split(',') : [];
-//     res.json({ status: true, data: user });
-//   });
-// });
-
-
-app.get('/api/user/:id', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  connection.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error('Error fetching user details:', error);
+      return res.status(500).json({ status: false, error: 'Database query failed' });
     }
-
-    const userId = req.params.id;
-    const query = `
-      SELECT 
-        u.id AS user_id,
-        u.username,
-        u.email,
-        u.password,
-        r.role_name,
-        u.created_at,
-        GROUP_CONCAT(s.servicename) AS assigned_services
-      FROM ekarigar_users u
-      LEFT JOIN ekarigar_roles r ON u.role_id = r.id
-      LEFT JOIN ekarigar_servicetype s ON FIND_IN_SET(s.id, u.assigned_services)
-      WHERE u.id = ?
-      GROUP BY u.id;
-    `;
-
-    const [results] = await dbConnection.execute(query, [userId]);
-
+    
     if (results.length === 0) {
       return res.status(404).json({ status: false, message: 'User not found' });
     }
@@ -6599,12 +5254,9 @@ app.get('/api/user/:id', async (req, res) => {
     const user = results[0];
     user.assigned_services = user.assigned_services ? user.assigned_services.split(',') : [];
     res.json({ status: true, data: user });
-
-  } catch (error) {
-    console.error('Error fetching user details:', error);
-    res.status(500).json({ status: false, message: 'Internal server error' });
-  }
+  });
 });
+
 
 // app.put('/api/user/:id', (req, res) => {
 //   const userId = req.params.id;
@@ -6639,79 +5291,37 @@ app.get('/api/user/:id', async (req, res) => {
 // });
 
 
-// app.post('/api/saveUser', (req, res) => {
-//   const { username, email, password, role, assigned_services, permissions } = req.body;
+app.post('/api/saveUser', (req, res) => {
+  const { username, email, password, role, assigned_services, permissions } = req.body;
 
-//   // Validate required fields
-//   if (!username || !email || !password || !role) {
-//     return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
-//   }
+  // Validate required fields
+  if (!username || !email || !password || !role) {
+    return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
+  }
 
-//   const created_at = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-//   const last_login = null;
+  const created_at = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
+  const last_login = null;
 
-//   // Convert arrays to comma-separated strings
-//   const services = Array.isArray(assigned_services) ? assigned_services.join(',') : '';
-//   const perms = Array.isArray(permissions) ? permissions.join(',') : '';
+  // Convert arrays to comma-separated strings
+  const services = Array.isArray(assigned_services) ? assigned_services.join(',') : '';
+  const perms = Array.isArray(permissions) ? permissions.join(',') : '';
 
-//   // Insert user into `ekarigar_users` table
-//   const query = `
-//     INSERT INTO ekarigar_users (username, email, password, role_id, assigned_services, permissions, created_at) 
-//     VALUES (?, ?, ?, ?, ?, ?, ?)
-//   `;
-//   const values = [username, email, password, role, services, perms, created_at];
+  // Insert user into `ekarigar_users` table
+  const query = `
+    INSERT INTO ekarigar_users (username, email, password, role_id, assigned_services, permissions, created_at) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `;
+  const values = [username, email, password, role, services, perms, created_at];
 
-//   connection.query(query, values, (err, result) => {
-//     if (err) {
-//       console.error('Error saving user:', err);
-//       return res.status(500).json({ status: 'error', message: 'Failed to save user' });
-//     }
-
-//     // Success response
-//     res.json({ status: 'success', message: 'User saved successfully', userId: result.insertId });
-//   });
-// });
-
-
-app.post('/api/saveUser', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  connection.query(query, values, (err, result) => {
+    if (err) {
+      console.error('Error saving user:', err);
+      return res.status(500).json({ status: 'error', message: 'Failed to save user' });
     }
-
-    const { username, email, password, role, assigned_services, permissions } = req.body;
-
-    // Validate required fields
-    if (!username || !email || !password || !role) {
-      return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
-    }
-
-    const created_at = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-    const last_login = null;
-
-    // Convert arrays to comma-separated strings
-    const services = Array.isArray(assigned_services) ? assigned_services.join(',') : '';
-    const perms = Array.isArray(permissions) ? permissions.join(',') : '';
-
-    // Insert user into `ekarigar_users` table
-    const query = `
-      INSERT INTO ekarigar_users (username, email, password, role_id, assigned_services, permissions, created_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `;
-    const values = [username, email, password, role, services, perms, created_at];
-
-    const [result] = await dbConnection.execute(query, values);
 
     // Success response
     res.json({ status: 'success', message: 'User saved successfully', userId: result.insertId });
-
-  } catch (error) {
-    console.error('Error saving user:', error);
-    res.status(500).json({ status: 'error', message: 'Internal server error' });
-  }
+  });
 });
 
 
@@ -6784,65 +5394,20 @@ app.post('/api/saveUser', async (req, res) => {
 //   });
 // });
 
-// app.put('/api/updateLeadStatus', (req, res) => {
-//   const { lead_id, status_id } = req.body;
+app.put('/api/updateLeadStatus', (req, res) => {
+  const { lead_id, status_id } = req.body;
 
-//   if (!lead_id || !status_id) {
-//     return res.status(400).json({ status: 'error', message: 'Missing lead_id or status_id' });
-//   }
+  if (!lead_id || !status_id) {
+    return res.status(400).json({ status: 'error', message: 'Missing lead_id or status_id' });
+  }
 
-//   const statusCheckQuery = `SELECT * FROM ekarigar_leads_status WHERE id = ?`;
+  const statusCheckQuery = `SELECT * FROM ekarigar_leads_status WHERE id = ?`;
 
-//   connection.query(statusCheckQuery, [status_id], (err, statusResults) => {
-//     if (err) {
-//       console.error('Error checking status ID:', err);
-//       return res.status(500).json({ status: 'error', message: 'Database error' });
-//     }
-
-//     if (statusResults.length === 0) {
-//       return res.status(400).json({ status: 'error', message: 'Invalid status ID' });
-//     }
-
-//     const updatedAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-//     const updateQuery = `
-//       UPDATE ekarigar_leads 
-//       SET status = ?, updated_at = ? 
-//       WHERE id = ?
-//     `;
-
-//     connection.query(updateQuery, [status_id, updatedAt, lead_id], (updateErr, result) => {
-//       if (updateErr) {
-//         console.error('Error updating lead status:', updateErr);
-//         return res.status(500).json({ status: 'error', message: 'Failed to update lead status' });
-//       }
-
-//       if (result.affectedRows === 0) {
-//         return res.status(404).json({ status: 'error', message: 'Lead not found' });
-//       }
-
-//       res.json({ status: 'success', message: 'Lead status updated successfully' });
-//     });
-//   });
-// });
-
-app.put('/api/updateLeadStatus', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  connection.query(statusCheckQuery, [status_id], (err, statusResults) => {
+    if (err) {
+      console.error('Error checking status ID:', err);
+      return res.status(500).json({ status: 'error', message: 'Database error' });
     }
-
-    const { lead_id, status_id } = req.body;
-
-    if (!lead_id || !status_id) {
-      return res.status(400).json({ status: 'error', message: 'Missing lead_id or status_id' });
-    }
-
-    const statusCheckQuery = `SELECT * FROM ekarigar_leads_status WHERE id = ?`;
-
-    const [statusResults] = await dbConnection.execute(statusCheckQuery, [status_id]);
 
     if (statusResults.length === 0) {
       return res.status(400).json({ status: 'error', message: 'Invalid status ID' });
@@ -6855,80 +5420,36 @@ app.put('/api/updateLeadStatus', async (req, res) => {
       WHERE id = ?
     `;
 
-    const [result] = await dbConnection.execute(updateQuery, [status_id, updatedAt, lead_id]);
+    connection.query(updateQuery, [status_id, updatedAt, lead_id], (updateErr, result) => {
+      if (updateErr) {
+        console.error('Error updating lead status:', updateErr);
+        return res.status(500).json({ status: 'error', message: 'Failed to update lead status' });
+      }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ status: 'error', message: 'Lead not found' });
-    }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ status: 'error', message: 'Lead not found' });
+      }
 
-    res.json({ status: 'success', message: 'Lead status updated successfully' });
-
-  } catch (error) {
-    console.error('Error updating lead status:', error);
-    res.status(500).json({ status: 'error', message: 'Internal server error' });
-  }
+      res.json({ status: 'success', message: 'Lead status updated successfully' });
+    });
+  });
 });
 
 
-// app.put('/api/updateLeadLikelihood', (req, res) => {
-//   const { lead_id, likelihood_id } = req.body;
+app.put('/api/updateLeadLikelihood', (req, res) => {
+  const { lead_id, likelihood_id } = req.body;
 
-//   if (!lead_id || !likelihood_id) {
-//     return res.status(400).json({ status: 'error', message: 'Missing lead_id or likelihood_id' });
-//   }
+  if (!lead_id || !likelihood_id) {
+    return res.status(400).json({ status: 'error', message: 'Missing lead_id or likelihood_id' });
+  }
 
-//   const likelihoodCheckQuery = `SELECT * FROM ekarigar_leads_likelihood WHERE id = ?`;
+  const likelihoodCheckQuery = `SELECT * FROM ekarigar_leads_likelihood WHERE id = ?`;
 
-//   connection.query(likelihoodCheckQuery, [likelihood_id], (err, likelihoodResults) => {
-//     if (err) {
-//       console.error('Error checking likelihood ID:', err);
-//       return res.status(500).json({ status: 'error', message: 'Database error' });
-//     }
-
-//     if (likelihoodResults.length === 0) {
-//       return res.status(400).json({ status: 'error', message: 'Invalid likelihood ID' });
-//     }
-
-//     const updatedAt = moment.tz('Asia/Kolkata').format('YYYY-MM-DD HH:mm:ss');
-//     const updateQuery = `
-//       UPDATE ekarigar_leads 
-//       SET likelihood_id = ?, updated_at = ? 
-//       WHERE id = ?
-//     `;
-
-//     connection.query(updateQuery, [likelihood_id, updatedAt, lead_id], (updateErr, result) => {
-//       if (updateErr) {
-//         console.error('Error updating lead likelihood:', updateErr);
-//         return res.status(500).json({ status: 'error', message: 'Failed to update lead likelihood' });
-//       }
-
-//       if (result.affectedRows === 0) {
-//         return res.status(404).json({ status: 'error', message: 'Lead not found' });
-//       }
-
-//       res.json({ status: 'success', message: 'Lead likelihood updated successfully' });
-//     });
-//   });
-// });
-
-app.put('/api/updateLeadLikelihood', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  connection.query(likelihoodCheckQuery, [likelihood_id], (err, likelihoodResults) => {
+    if (err) {
+      console.error('Error checking likelihood ID:', err);
+      return res.status(500).json({ status: 'error', message: 'Database error' });
     }
-
-    const { lead_id, likelihood_id } = req.body;
-
-    if (!lead_id || !likelihood_id) {
-      return res.status(400).json({ status: 'error', message: 'Missing lead_id or likelihood_id' });
-    }
-
-    const likelihoodCheckQuery = `SELECT * FROM ekarigar_leads_likelihood WHERE id = ?`;
-
-    const [likelihoodResults] = await dbConnection.execute(likelihoodCheckQuery, [likelihood_id]);
 
     if (likelihoodResults.length === 0) {
       return res.status(400).json({ status: 'error', message: 'Invalid likelihood ID' });
@@ -6941,92 +5462,51 @@ app.put('/api/updateLeadLikelihood', async (req, res) => {
       WHERE id = ?
     `;
 
-    const [result] = await dbConnection.execute(updateQuery, [likelihood_id, updatedAt, lead_id]);
+    connection.query(updateQuery, [likelihood_id, updatedAt, lead_id], (updateErr, result) => {
+      if (updateErr) {
+        console.error('Error updating lead likelihood:', updateErr);
+        return res.status(500).json({ status: 'error', message: 'Failed to update lead likelihood' });
+      }
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ status: 'error', message: 'Lead not found' });
-    }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ status: 'error', message: 'Lead not found' });
+      }
 
-    res.json({ status: 'success', message: 'Lead likelihood updated successfully' });
-
-  } catch (error) {
-    console.error('Error updating lead likelihood:', error);
-    res.status(500).json({ status: 'error', message: 'Internal server error' });
-  }
+      res.json({ status: 'success', message: 'Lead likelihood updated successfully' });
+    });
+  });
 });
 
 
-// app.put('/api/updateUser', (req, res) => {
-//   const { user_id, username, email, password, role_id, assigned_services, permissions } = req.body;
+app.put('/api/updateUser', (req, res) => {
+  const { user_id, username, email, password, role_id, assigned_services, permissions } = req.body;
   
-// //   console.log("req body",req.body);
+//   console.log("req body",req.body);
 
-//   // Validate required fields
-//   if (!user_id || !username || !email || !role_id) {
-//     return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
-//   }
+  // Validate required fields
+  if (!user_id || !username || !email || !role_id) {
+    return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
+  }
 
-//   // Convert arrays to comma-separated strings
-//   const services = Array.isArray(assigned_services) ? assigned_services.join(',') : '';
-//   const perms = Array.isArray(permissions) ? permissions.join(',') : '';
+  // Convert arrays to comma-separated strings
+  const services = Array.isArray(assigned_services) ? assigned_services.join(',') : '';
+  const perms = Array.isArray(permissions) ? permissions.join(',') : '';
 
-//   // Prepare the update query
-//   const query = `
-//     UPDATE ekarigar_users 
-//     SET username = ?, email = ?, password = ?, role_id = ?, assigned_services = ?, permissions = ? 
-//     WHERE id = ?
-//   `;
+  // Prepare the update query
+  const query = `
+    UPDATE ekarigar_users 
+    SET username = ?, email = ?, password = ?, role_id = ?, assigned_services = ?, permissions = ? 
+    WHERE id = ?
+  `;
   
-//   // Use hashed password or update only if provided
-//   const values = [username, email, password || null, role_id, services, perms, user_id];
+  // Use hashed password or update only if provided
+  const values = [username, email, password || null, role_id, services, perms, user_id];
 
-//   connection.query(query, values, (err, result) => {
-//     if (err) {
-//       console.error('Error updating user:', err);
-//       return res.status(500).json({ status: 'error', message: 'Failed to update user' });
-//     }
-
-//     // Check if any rows were affected
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ status: 'error', message: 'User not found' });
-//     }
-
-//     // Success response
-//     res.json({ status: 'success', message: 'User updated successfully' });
-//   });
-// });
-
-app.put('/api/updateUser', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  connection.query(query, values, (err, result) => {
+    if (err) {
+      console.error('Error updating user:', err);
+      return res.status(500).json({ status: 'error', message: 'Failed to update user' });
     }
-
-    const { user_id, username, email, password, role_id, assigned_services, permissions } = req.body;
-
-    // Validate required fields
-    if (!user_id || !username || !email || !role_id) {
-      return res.status(400).json({ status: 'error', message: 'Invalid data provided' });
-    }
-
-    // Convert arrays to comma-separated strings
-    const services = Array.isArray(assigned_services) ? assigned_services.join(',') : '';
-    const perms = Array.isArray(permissions) ? permissions.join(',') : '';
-
-    // Prepare the update query
-    const query = `
-      UPDATE ekarigar_users 
-      SET username = ?, email = ?, password = ?, role_id = ?, assigned_services = ?, permissions = ? 
-      WHERE id = ?
-    `;
-
-    // Use hashed password or update only if provided
-    const values = [username, email, password || null, role_id, services, perms, user_id];
-
-    const [result] = await dbConnection.execute(query, values);
 
     // Check if any rows were affected
     if (result.affectedRows === 0) {
@@ -7035,114 +5515,57 @@ app.put('/api/updateUser', async (req, res) => {
 
     // Success response
     res.json({ status: 'success', message: 'User updated successfully' });
-
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).json({ status: 'error', message: 'Internal server error' });
-  }
+  });
 });
 
 // Delete User API - Soft Delete
-// app.delete('/api/users/:id', (req, res) => {
-//   const userId = req.params.id;
+app.delete('/api/users/:id', (req, res) => {
+  const userId = req.params.id;
 
-//   // Update delete_status to 1 for the specified user
-//   const query = 'UPDATE ekarigar_users SET delete_status = 1 WHERE id = ?';
-//   connection.query(query, [userId], (error, results) => {
-//     if (error) {
-//       console.error('Error updating delete_status:', error);
-//       return res.status(500).json({ status: false, error: 'Database query failed' });
-//     }
-
-//     if (results.affectedRows === 0) {
-//       return res.status(404).json({ status: false, message: 'User not found' });
-//     }
-
-//     res.json({ status: true, message: 'User deleted successfully (soft delete).' });
-//   });
-// });
-
-app.delete('/api/users/:id', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  // Update delete_status to 1 for the specified user
+  const query = 'UPDATE ekarigar_users SET delete_status = 1 WHERE id = ?';
+  connection.query(query, [userId], (error, results) => {
+    if (error) {
+      console.error('Error updating delete_status:', error);
+      return res.status(500).json({ status: false, error: 'Database query failed' });
     }
-
-    const userId = req.params.id;
-
-    // Update delete_status to 1 for the specified user
-    const query = 'UPDATE ekarigar_users SET delete_status = 1 WHERE id = ?';
-
-    const [results] = await dbConnection.execute(query, [userId]);
 
     if (results.affectedRows === 0) {
       return res.status(404).json({ status: false, message: 'User not found' });
     }
 
     res.json({ status: true, message: 'User deleted successfully (soft delete).' });
-
-  } catch (error) {
-    console.error('Error updating delete_status:', error);
-    res.status(500).json({ status: false, message: 'Internal server error' });
-  }
+  });
 });
 
 
 
 //-------------------social media leads query-------------------------
 
-// app.post('/api/run-sql', (req, res) => {
-//   const { sql } = req.body;
+app.post('/api/run-sql', (req, res) => {
+  const { sql } = req.body;
 
-//   if (!sql) {
-//     return res.status(400).json({ status: false, message: 'SQL query is required' });
-//   }
+  if (!sql) {
+    return res.status(400).json({ status: false, message: 'SQL query is required' });
+  }
 
-//   connection.query(sql, (err, results) => {
-//     if (err) {
-//       console.error('SQL execution error:', err);
-//       return res.status(500).json({ status: false, message: 'SQL execution failed', error: err });
-//     }
-
-//     res.status(200).json({
-//       status: true,
-//       message: 'SQL executed successfully',
-//       results
-//     });
-//   });
-// });
-
-app.post('/api/run-sql', async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res.status(500).json({
-        status: false,
-        message: 'Database connection not established'
-      });
+  connection.query(sql, (err, results) => {
+    if (err) {
+      console.error('SQL execution error:', err);
+      return res.status(500).json({ status: false, message: 'SQL execution failed', error: err });
     }
-
-    const { sql } = req.body;
-
-    if (!sql) {
-      return res.status(400).json({ status: false, message: 'SQL query is required' });
-    }
-
-    const [results] = await dbConnection.execute(sql);
 
     res.status(200).json({
       status: true,
       message: 'SQL executed successfully',
       results
     });
-
-  } catch (error) {
-    console.error('SQL execution error:', error);
-    res.status(500).json({ status: false, message: 'SQL execution failed', error });
-  }
+  });
 });
+
+
+
+
 
 
 // -------------------------------------------------end of queries--------------------------------------------
