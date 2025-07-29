@@ -2030,7 +2030,7 @@ app.get('/api/leadsources_user/:userId', async (req, res) => {
       queryParams = [userId, assigned_services, assigned_services, assigned_services];
     } else {
       return res.status(200).json({
-        status: 'success',
+        success: true,
         message: 'No services assigned to user',
         data: [],
       });
