@@ -378,7 +378,9 @@ app.use(bodyParser.json());
 
 // ✅ Updated CORS setup
 const corsOptions = {
-  origin: 'https://sales.ekarigar.com', // ✅ Your frontend domain
+  // origin: 'https://sales.ekarigar.com', // ✅ Your frontend domain
+  origin: '*', // ✅ Your frontend domain
+
   methods: ['POST', 'GET', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true // ✅ Only if you are using cookies or auth headers
@@ -3214,7 +3216,8 @@ app.get('/api/checkbox-options', async (req, res) => {
     const query = 'SELECT id, option_name FROM ekarigar_lead_checkbox';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+     res.json(results);
   } catch (err) {
     console.error('Error fetching checkbox options:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3274,7 +3277,9 @@ app.get('/api/likelihood-options', async (req, res) => {
     const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.json(results);
+    
   } catch (err) {
     console.error('Error fetching likelihood options:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3319,7 +3324,8 @@ app.get('/api/lead-sources', async (req, res) => {
     const query = 'SELECT id, source_name FROM ekarigar_lead_source';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.json(results);
   } catch (err) {
     console.error('Error fetching lead sources:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3335,7 +3341,8 @@ app.get('/api/likelihood-options', async (req, res) => {
     const query = 'SELECT id, likelihood_name FROM ekarigar_leads_likelihood';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.json(results);
   } catch (err) {
     console.error('Error fetching likelihood options:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3385,7 +3392,8 @@ app.get('/api/get_users', async (req, res) => {
       return res.status(200).json({ status: true, data: [], message: 'No users found' });
     }
 
-    res.status(200).json({ status: true, data: results });
+    // res.status(200).json({ status: true, data: results });
+     res.json({ status: true, data: results });
   } catch (err) {
     console.error('Error fetching users:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3416,7 +3424,9 @@ app.get('/api/get_industryType', async (req, res) => {
     const query = 'SELECT id, industryname FROM ekarigar_industrytype';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.json(results);
+
   } catch (err) {
     console.error('Error fetching industry types:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3452,7 +3462,9 @@ app.get('/api/getservicetypes', async (req, res) => {
 
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.json(results);
+
   } catch (err) {
     console.error('Error fetching service types:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3551,7 +3563,8 @@ app.get('/api/getuserservicetypes', async (req, res) => {
     const serviceQuery = `SELECT * FROM ekarigar_servicetype WHERE id IN (${placeholders})`;
     const [serviceResults] = await dbConnection.execute(serviceQuery, serviceIds);
 
-    res.status(200).json({ status: 'success', data: serviceResults });
+    // res.status(200).json({ status: 'success', data: serviceResults });
+    res.json(serviceResults);
   } catch (err) {
     console.error('Error fetching user service types:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3584,7 +3597,8 @@ app.get('/api/get_roles', async (req, res) => {
     const query = 'SELECT * FROM ekarigar_roles';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.json(results);
   } catch (err) {
     console.error('Error fetching roles:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3617,7 +3631,9 @@ app.get('/api/get_contact_methods', async (req, res) => {
     const query = 'SELECT * FROM ekarigar_contact_methods';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+            res.json(results);
+
   } catch (err) {
     console.error('Error fetching contact methods:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3650,7 +3666,8 @@ app.get('/api/get_permissions', async (req, res) => {
     const query = 'SELECT * FROM ekarigar_permissions';
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+    res.json(results);
   } catch (err) {
     console.error('Error fetching ekarigar_permissions:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3703,7 +3720,8 @@ app.get('/api/get_services_with_status', async (req, res) => {
 
     const [results] = await dbConnection.execute(query);
 
-    res.status(200).json({ status: 'success', data: results });
+    // res.status(200).json({ status: 'success', data: results });
+     res.json(results);
   } catch (err) {
     console.error('Error fetching services with status:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -3744,7 +3762,8 @@ app.get('/api/getUserRole/:userId', async (req, res) => {
 
     if (results.length > 0) {
       const roleId = results[0].role_id;
-      res.status(200).json({ status: 'success', role_id: roleId });
+      // res.status(200).json({ status: 'success', role_id: roleId });
+       res.json({ role_id: roleId }); // Return the role_id directly
     } else {
       res.status(404).json({ error: 'User not found or deleted' });
     }
@@ -3801,7 +3820,9 @@ app.get('/api/user/:userId/permissions', async (req, res) => {
 
     const permissionIds = results.map(row => row.id);
 
-    res.status(200).json({ status: 'success', data: permissionIds });
+    // res.status(200).json({ status: 'success', data: permissionIds });
+        res.json(permissionIds);
+
   } catch (err) {
     console.error('Error fetching user permissions:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -4026,6 +4047,7 @@ app.get('/api/getleads', async (req, res) => {
     }));
 
     res.status(200).json({ status: true, data });
+    // res.json({ status: true, data });
   } catch (err) {
     console.error('Error fetching leads:', err);
     res.status(500).json({ error: 'Internal server error' });
@@ -4272,6 +4294,7 @@ app.get('/api/getleads_wip', async (req, res) => {
     }));
 
     res.status(200).json({ status: true, data });
+    // res.json({ status: true, data });
   } catch (err) {
     console.error('Error fetching leads:', err);
     res.status(500).json({ message: 'Internal server error' });
@@ -4532,149 +4555,287 @@ app.get('/api/getleads_wip', async (req, res) => {
 //   });
 // });
 
+// app.get('/api/getleads_wipp', async (req, res) => {
+//   try {
+//     const userId = req.headers['user-id'];
+//     const userPermissions = req.headers['user-permissions'];
 
-app.get('/api/getleads_wipp', async (req, res) => {
-  try {
-    const userId = req.headers['user-id'];
-    const userPermissions = req.headers['user-permissions'];
+//     const {
+//       createdStartDate,
+//       createdEndDate,
+//       updatedStartDate,
+//       updatedEndDate
+//     } = req.query;
 
-    const {
-      createdStartDate,
-      createdEndDate,
-      updatedStartDate,
-      updatedEndDate
-    } = req.query;
+//     if (!userId || !userPermissions) {
+//       return res.status(400).send({ message: 'User ID or permissions not provided' });
+//     }
 
-    if (!userId || !userPermissions) {
-      return res.status(400).json({ message: 'User ID or permissions not provided' });
-    }
+//     let query = `
+//       SELECT 
+//           l.id, 
+//           l.assigned_to, 
+//           u.username AS assigned_username,
+//           l.status AS status_id, 
+//           ls.status_name AS status, 
+//           l.name, 
+//           l.mobile_number, 
+//           l.email, 
+//           l.city,
+//           l.website_type AS website_type_id,
+//           l.industry_type AS industry_type_id,
+//           st.servicename AS website_type, 
+//           it.industryname AS industry_type, 
+//           cm.id AS contact_preference_id, 
+//           cm.method_name AS contact_preference, 
+//           l.preferred_date, 
+//           l.preferred_time, 
+//           l.requirements, 
+//           l.lead_source AS source_id,
+//           ls_table.source_name AS lead_source,
+//           l.checkbox_ids, 
+//           l.created_at, 
+//           l.updated_at,
+//           l.likelihood_id,
+//           COUNT(f.id) AS followUpCount
+//       FROM 
+//           ekarigar_leads l
+//       LEFT JOIN 
+//           ekarigar_servicetype st ON l.website_type = st.id
+//       LEFT JOIN 
+//           ekarigar_industrytype it ON l.industry_type = it.id
+//       LEFT JOIN 
+//           ekarigar_followups f ON l.id = f.lead_id
+//       LEFT JOIN 
+//           ekarigar_users u ON l.assigned_to = u.id
+//       LEFT JOIN 
+//           ekarigar_contact_methods cm ON l.contact_preference = cm.id
+//       LEFT JOIN 
+//           ekarigar_leads_status ls ON l.status = ls.id
+//       LEFT JOIN 
+//           ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
+//       WHERE 1=1
+//     `;
 
-    if (!dbConnection) {
-      return res.status(500).json({ message: 'Database connection not established' });
-    }
+//     const params = [];
 
-    // Base query
-    let query = `
-      SELECT 
-          l.id, 
-          l.assigned_to, 
-          u.username AS assigned_username,
-          l.status AS status_id, 
-          ls.status_name AS status, 
-          l.name, 
-          l.mobile_number, 
-          l.email, 
-          l.city,
-          l.website_type AS website_type_id,
-          l.industry_type AS industry_type_id,
-          st.servicename AS website_type, 
-          it.industryname AS industry_type, 
-          cm.id AS contact_preference_id, 
-          cm.method_name AS contact_preference, 
-          l.preferred_date, 
-          l.preferred_time, 
-          l.requirements, 
-          l.lead_source AS source_id,
-          ls_table.source_name AS lead_source,
-          l.checkbox_ids, 
-          l.created_at, 
-          l.updated_at,
-          l.likelihood_id,
-          COUNT(f.id) AS followUpCount
-      FROM 
-          ekarigar_leads l
-      LEFT JOIN 
-          ekarigar_servicetype st ON l.website_type = st.id
-      LEFT JOIN 
-          ekarigar_industrytype it ON l.industry_type = it.id
-      LEFT JOIN 
-          ekarigar_followups f ON l.id = f.lead_id
-      LEFT JOIN 
-          ekarigar_users u ON l.assigned_to = u.id
-      LEFT JOIN 
-          ekarigar_contact_methods cm ON l.contact_preference = cm.id
-      LEFT JOIN 
-          ekarigar_leads_status ls ON l.status = ls.id
-      LEFT JOIN 
-          ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
-      WHERE 1=1
-    `;
+//     // Date conditions array
+//     let dateConditions = [];
 
-    const queryParams = [];
+//     if (createdStartDate && createdEndDate) {
+//       dateConditions.push(`DATE(l.created_at) BETWEEN ? AND ?`);
+//       params.push(createdStartDate, createdEndDate);
+//     }
 
-    // Build date conditions
-    const dateConditions = [];
+//     if (updatedStartDate && updatedEndDate) {
+//       dateConditions.push(`DATE(l.updated_at) BETWEEN ? AND ?`);
+//       params.push(updatedStartDate, updatedEndDate);
+//     }
 
-    if (createdStartDate && createdEndDate) {
-      dateConditions.push(`DATE(l.created_at) BETWEEN ? AND ?`);
-      queryParams.push(createdStartDate, createdEndDate);
-    }
+//     if (dateConditions.length === 0) {
+//       // No date filters provided, default to current month for created_at
+//       dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
+//     }
 
-    if (updatedStartDate && updatedEndDate) {
-      dateConditions.push(`DATE(l.updated_at) BETWEEN ? AND ?`);
-      queryParams.push(updatedStartDate, updatedEndDate);
-    }
+//     if (dateConditions.length > 0) {
+//       query += ` AND (${dateConditions.join(' AND ')})`;
+//     }
 
-    // If no date filters, default to current month
-    if (dateConditions.length === 0) {
-      dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
-    }
+//     if (userPermissions !== '1') {
+//       console.log("Restricted permissions: Fetching assigned leads");
+//       query += ` AND (l.assigned_to = ? 
+//                    OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?))`;
+//       params.push(userId, userId);
+//     } else {
+//       console.log("Admin permissions: Fetching all leads");
+//     }
 
-    if (dateConditions.length > 0) {
-      query += ` AND (${dateConditions.join(' AND ')})`;
-    }
+//     query += ` GROUP BY l.id ORDER BY l.id DESC;`;
 
-    // Permission-based filtering
-    if (userPermissions !== '1') {
-      query += `
-        AND (
-          l.assigned_to = ? 
-          OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?)
-        )
-      `;
-      queryParams.push(userId, userId);
-    }
+//     console.log('Executing query:', query, params);
 
-    query += ` GROUP BY l.id ORDER BY l.id DESC`;
+//     // Execute the query
+//     const [results] = await dbConnection.execute(query, params);
 
-    console.log('Executing query:', query, queryParams);
+//     const data = results.map(row => ({
+//       id: row.id,
+//       assigned_to_id: row.assigned_to,
+//       assigned_to: row.assigned_username || null,
+//       status_id: row.status_id,
+//       status: row.status,
+//       name: row.name,
+//       mobile_number: row.mobile_number,
+//       email: row.email,
+//       city: row.city,
+//       website_type_id: row.website_type_id,
+//       industry_type_id: row.industry_type_id,
+//       website_type: row.website_type,
+//       industry_type: row.industry_type,
+//       contact_preference: row.contact_preference,
+//       contact_preference_id: row.contact_preference_id || null,
+//       preferred_date: row.preferred_date,
+//       preferred_time: row.preferred_time,
+//       requirements: row.requirements,
+//       source_id: row.source_id,
+//       lead_source: row.lead_source,
+//       checkbox_ids: row.checkbox_ids,
+//       created_at: row.created_at,
+//       updated_at: row.updated_at,
+//       likelihood_id: row.likelihood_id,
+//       followUpCount: row.followUpCount || 0,
+//     }));
 
-    const [results] = await dbConnection.execute(query, queryParams);
+//     res.json({ status: true, data });
+//   } catch (err) {
+//     console.error(err);
+//     res.status(500).send({ message: 'Error fetching leads' });
+//   }
+// });
 
-    const data = results.map(row => ({
-      id: row.id,
-      assigned_to_id: row.assigned_to,
-      assigned_to: row.assigned_username || null,
-      status_id: row.status_id,
-      status: row.status,
-      name: row.name,
-      mobile_number: row.mobile_number,
-      email: row.email,
-      city: row.city,
-      website_type_id: row.website_type_id,
-      industry_type_id: row.industry_type_id,
-      website_type: row.website_type,
-      industry_type: row.industry_type,
-      contact_preference: row.contact_preference,
-      contact_preference_id: row.contact_preference_id || null,
-      preferred_date: row.preferred_date,
-      preferred_time: row.preferred_time,
-      requirements: row.requirements,
-      source_id: row.source_id,
-      lead_source: row.lead_source,
-      checkbox_ids: row.checkbox_ids,
-      created_at: row.created_at,
-      updated_at: row.updated_at,
-      likelihood_id: row.likelihood_id,
-      followUpCount: row.followUpCount || 0,
-    }));
 
-    res.status(200).json({ status: true, data });
-  } catch (err) {
-    console.error('Error fetching leads:', err);
-    res.status(500).json({ message: 'Internal server error' });
-  }
-});
+// app.get('/api/getleads_wipp', async (req, res) => {
+//   try {
+//     const userId = req.headers['user-id'];
+//     const userPermissions = req.headers['user-permissions'];
+
+//     const {
+//       createdStartDate,
+//       createdEndDate,
+//       updatedStartDate,
+//       updatedEndDate
+//     } = req.query;
+
+//     if (!userId || !userPermissions) {
+//       return res.status(400).json({ message: 'User ID or permissions not provided' });
+//     }
+
+//     if (!dbConnection) {
+//       return res.status(500).json({ message: 'Database connection not established' });
+//     }
+
+//     // Base query
+//     let query = `
+//       SELECT 
+//           l.id, 
+//           l.assigned_to, 
+//           u.username AS assigned_username,
+//           l.status AS status_id, 
+//           ls.status_name AS status, 
+//           l.name, 
+//           l.mobile_number, 
+//           l.email, 
+//           l.city,
+//           l.website_type AS website_type_id,
+//           l.industry_type AS industry_type_id,
+//           st.servicename AS website_type, 
+//           it.industryname AS industry_type, 
+//           cm.id AS contact_preference_id, 
+//           cm.method_name AS contact_preference, 
+//           l.preferred_date, 
+//           l.preferred_time, 
+//           l.requirements, 
+//           l.lead_source AS source_id,
+//           ls_table.source_name AS lead_source,
+//           l.checkbox_ids, 
+//           l.created_at, 
+//           l.updated_at,
+//           l.likelihood_id,
+//           COUNT(f.id) AS followUpCount
+//       FROM 
+//           ekarigar_leads l
+//       LEFT JOIN 
+//           ekarigar_servicetype st ON l.website_type = st.id
+//       LEFT JOIN 
+//           ekarigar_industrytype it ON l.industry_type = it.id
+//       LEFT JOIN 
+//           ekarigar_followups f ON l.id = f.lead_id
+//       LEFT JOIN 
+//           ekarigar_users u ON l.assigned_to = u.id
+//       LEFT JOIN 
+//           ekarigar_contact_methods cm ON l.contact_preference = cm.id
+//       LEFT JOIN 
+//           ekarigar_leads_status ls ON l.status = ls.id
+//       LEFT JOIN 
+//           ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
+//       WHERE 1=1
+//     `;
+
+//     const queryParams = [];
+
+//     // Build date conditions
+//     const dateConditions = [];
+
+//     if (createdStartDate && createdEndDate) {
+//       dateConditions.push(`DATE(l.created_at) BETWEEN ? AND ?`);
+//       queryParams.push(createdStartDate, createdEndDate);
+//     }
+
+//     if (updatedStartDate && updatedEndDate) {
+//       dateConditions.push(`DATE(l.updated_at) BETWEEN ? AND ?`);
+//       queryParams.push(updatedStartDate, updatedEndDate);
+//     }
+
+//     // If no date filters, default to current month
+//     if (dateConditions.length === 0) {
+//       dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
+//     }
+
+//     if (dateConditions.length > 0) {
+//       query += ` AND (${dateConditions.join(' AND ')})`;
+//     }
+
+//     // Permission-based filtering
+//     if (userPermissions !== '1') {
+//       query += `
+//         AND (
+//           l.assigned_to = ? 
+//           OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?)
+//         )
+//       `;
+//       queryParams.push(userId, userId);
+//     }
+
+//     query += ` GROUP BY l.id ORDER BY l.id DESC`;
+
+//     console.log('Executing query:', query, queryParams);
+
+//     const [results] = await dbConnection.execute(query, queryParams);
+
+//     const data = results.map(row => ({
+//       id: row.id,
+//       assigned_to_id: row.assigned_to,
+//       assigned_to: row.assigned_username || null,
+//       status_id: row.status_id,
+//       status: row.status,
+//       name: row.name,
+//       mobile_number: row.mobile_number,
+//       email: row.email,
+//       city: row.city,
+//       website_type_id: row.website_type_id,
+//       industry_type_id: row.industry_type_id,
+//       website_type: row.website_type,
+//       industry_type: row.industry_type,
+//       contact_preference: row.contact_preference,
+//       contact_preference_id: row.contact_preference_id || null,
+//       preferred_date: row.preferred_date,
+//       preferred_time: row.preferred_time,
+//       requirements: row.requirements,
+//       source_id: row.source_id,
+//       lead_source: row.lead_source,
+//       checkbox_ids: row.checkbox_ids,
+//       created_at: row.created_at,
+//       updated_at: row.updated_at,
+//       likelihood_id: row.likelihood_id,
+//       followUpCount: row.followUpCount || 0,
+//     }));
+
+//     // res.status(200).json({ status: true, data });
+//     res.json({ status: true, data });
+//   } catch (err) {
+//     console.error('Error fetching leads:', err);
+//     res.status(500).json({ message: 'Internal server error' });
+//   }
+// });
 
 
 
@@ -4743,6 +4904,315 @@ app.get('/api/getleads_wipp', async (req, res) => {
 //     });
 //   });
 // });
+
+// app.options('/api/getleads_wipp', cors());
+// app.get('/api/getleads_wipp', async (req, res) => {
+//   try {
+//     if (!dbConnection) {
+//       return res.status(500).json({ error: 'Database connection not established' });
+//     }
+
+//     const userId = req.headers['user-id'];
+//     const userPermissions = req.headers['user-permissions'];
+    
+//     // Get date parameters for both created and updated dates
+//     const { 
+//       createdStartDate, 
+//       createdEndDate, 
+//       updatedStartDate, 
+//       updatedEndDate 
+//     } = req.query;
+    
+//     if (!userId || !userPermissions) {
+//       return res.status(400).json({ message: 'User ID or permissions not provided' });
+//     }
+    
+//     // Base query
+//     let query = `
+//       SELECT 
+//           l.id, 
+//           l.assigned_to, 
+//           u.username AS assigned_username,
+//           l.status AS status_id, 
+//           ls.status_name AS status, 
+//           l.name, 
+//           l.mobile_number, 
+//           l.email, 
+//           l.city,
+//           l.website_type AS website_type_id,
+//           l.industry_type AS industry_type_id,
+//           st.servicename AS website_type, 
+//           it.industryname AS industry_type, 
+//           cm.id AS contact_preference_id, 
+//           cm.method_name AS contact_preference, 
+//           l.preferred_date, 
+//           l.preferred_time, 
+//           l.requirements, 
+//           l.lead_source AS source_id,
+//           ls_table.source_name AS lead_source,
+//           l.checkbox_ids, 
+//           l.created_at, 
+//           l.updated_at,
+//           l.likelihood_id,
+//           COUNT(f.id) AS followUpCount
+//       FROM 
+//           ekarigar_leads l
+//       LEFT JOIN 
+//           ekarigar_servicetype st ON l.website_type = st.id
+//       LEFT JOIN 
+//           ekarigar_industrytype it ON l.industry_type = it.id
+//       LEFT JOIN 
+//           ekarigar_followups f ON l.id = f.lead_id
+//       LEFT JOIN 
+//           ekarigar_users u ON l.assigned_to = u.id
+//       LEFT JOIN 
+//           ekarigar_contact_methods cm ON l.contact_preference = cm.id
+//       LEFT JOIN 
+//           ekarigar_leads_status ls ON l.status = ls.id
+//       LEFT JOIN 
+//           ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
+//       WHERE 1=1
+//     `;
+    
+//     // Build date filtering conditions
+//     let dateConditions = [];
+    
+//     // Created date filter
+//     if (createdStartDate && createdEndDate) {
+//       dateConditions.push(`DATE(l.created_at) BETWEEN ? AND ?`);
+//     }
+    
+//     // Updated date filter
+//     if (updatedStartDate && updatedEndDate) {
+//       dateConditions.push(`DATE(l.updated_at) BETWEEN ? AND ?`);
+//     }
+    
+//     // If no date filters are provided, default to current month for created_at
+//     if (dateConditions.length === 0) {
+//       dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
+//     }
+    
+//     // Add date conditions to query
+//     if (dateConditions.length > 0) {
+//       query += ` AND (${dateConditions.join(' AND ')})`;
+//     }
+    
+//     // Filter based on permissions
+//     if (userPermissions !== '1') {
+//       console.log("Restricted permissions: Fetching assigned leads");
+//       query += ` AND (l.assigned_to = ? OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?))`;
+//     } else {
+//       console.log("Admin permissions: Fetching all leads");
+//     }
+    
+//     query += ` GROUP BY l.id ORDER BY l.id DESC;`;
+    
+//     console.log('Executing query:', query); // For debugging
+    
+//     // Prepare query parameters
+//     const queryParams = [];
+//     if (createdStartDate && createdEndDate) {
+//       queryParams.push(createdStartDate, createdEndDate);
+//     }
+//     if (updatedStartDate && updatedEndDate) {
+//       queryParams.push(updatedStartDate, updatedEndDate);
+//     }
+//     if (userPermissions !== '1') {
+//       queryParams.push(userId, userId);
+//     }
+    
+//     const [results] = await dbConnection.execute(query, queryParams);
+    
+//     const data = results.map(row => ({
+//       id: row.id,
+//       assigned_to_id: row.assigned_to,
+//       assigned_to: row.assigned_username || null,
+//       status_id: row.status_id,
+//       status: row.status,
+//       name: row.name,
+//       mobile_number: row.mobile_number,
+//       email: row.email,
+//       city: row.city,
+//       website_type_id: row.website_type_id,
+//       industry_type_id: row.industry_type_id,
+//       website_type: row.website_type,
+//       industry_type: row.industry_type,
+//       contact_preference: row.contact_preference,
+//       contact_preference_id: row.contact_preference_id || null,
+//       preferred_date: row.preferred_date,
+//       preferred_time: row.preferred_time,
+//       requirements: row.requirements,
+//       source_id: row.source_id,
+//       lead_source: row.lead_source,
+//       checkbox_ids: row.checkbox_ids,
+//       created_at: row.created_at,
+//       updated_at: row.updated_at,
+//       likelihood_id: row.likelihood_id,
+//       followUpCount: row.followUpCount || 0,
+//     }));
+    
+//     res.json({ status: true, data });
+//   } catch (err) {
+//     console.error('Error fetching leads:', err);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
+
+app.get('/api/getleads_wipp', async (req, res) => {
+  try {
+    if (!dbConnection) {
+      return res.status(500).json({ error: 'Database connection not established' });
+    }
+
+    const userId = req.headers['user-id'];
+    const userPermissions = req.headers['user-permissions'];
+    
+    // Get date parameters for both created and updated dates
+    const { 
+      createdStartDate, 
+      createdEndDate, 
+      updatedStartDate, 
+      updatedEndDate 
+    } = req.query;
+    
+    if (!userId || !userPermissions) {
+      return res.status(400).json({ message: 'User ID or permissions not provided' });
+    }
+    
+    // Base query
+    let query = `
+      SELECT 
+          l.id, 
+          l.assigned_to, 
+          u.username AS assigned_username,
+          l.status AS status_id, 
+          ls.status_name AS status, 
+          l.name, 
+          l.mobile_number, 
+          l.email, 
+          l.city,
+          l.website_type AS website_type_id,
+          l.industry_type AS industry_type_id,
+          st.servicename AS website_type, 
+          it.industryname AS industry_type, 
+          cm.id AS contact_preference_id, 
+          cm.method_name AS contact_preference, 
+          l.preferred_date, 
+          l.preferred_time, 
+          l.requirements, 
+          l.lead_source AS source_id,
+          ls_table.source_name AS lead_source,
+          l.checkbox_ids, 
+          l.created_at, 
+          l.updated_at,
+          l.likelihood_id,
+          COUNT(f.id) AS followUpCount
+      FROM 
+          ekarigar_leads l
+      LEFT JOIN 
+          ekarigar_servicetype st ON l.website_type = st.id
+      LEFT JOIN 
+          ekarigar_industrytype it ON l.industry_type = it.id
+      LEFT JOIN 
+          ekarigar_followups f ON l.id = f.lead_id
+      LEFT JOIN 
+          ekarigar_users u ON l.assigned_to = u.id
+      LEFT JOIN 
+          ekarigar_contact_methods cm ON l.contact_preference = cm.id
+      LEFT JOIN 
+          ekarigar_leads_status ls ON l.status = ls.id
+      LEFT JOIN 
+          ekarigar_lead_source ls_table ON l.lead_source = ls_table.id
+      WHERE 1=1
+    `;
+    
+    // Build date filtering conditions
+    let dateConditions = [];
+    
+    // Created date filter
+    if (createdStartDate && createdEndDate) {
+      dateConditions.push(`DATE(l.created_at) BETWEEN ? AND ?`);
+    }
+    
+    // Updated date filter
+    if (updatedStartDate && updatedEndDate) {
+      dateConditions.push(`DATE(l.updated_at) BETWEEN ? AND ?`);
+    }
+    
+    // If no date filters are provided, default to current month for created_at
+    if (dateConditions.length === 0) {
+      dateConditions.push(`MONTH(l.created_at) = MONTH(CURDATE()) AND YEAR(l.created_at) = YEAR(CURDATE())`);
+    }
+    
+    // Add date conditions to query
+    if (dateConditions.length > 0) {
+      query += ` AND (${dateConditions.join(' AND ')})`;
+    }
+    
+    // Filter based on permissions
+    if (userPermissions !== '1') {
+      console.log("Restricted permissions: Fetching assigned leads");
+      query += ` AND (l.assigned_to = ? OR l.id IN (SELECT id FROM ekarigar_leads WHERE assigned_to = ?))`;
+    } else {
+      console.log("Admin permissions: Fetching all leads");
+    }
+    
+    query += ` GROUP BY l.id ORDER BY l.id DESC;`;
+    
+    console.log('Executing query:', query); // For debugging
+    
+    // Prepare query parameters
+    const queryParams = [];
+    if (createdStartDate && createdEndDate) {
+      queryParams.push(createdStartDate, createdEndDate);
+    }
+    if (updatedStartDate && updatedEndDate) {
+      queryParams.push(updatedStartDate, updatedEndDate);
+    }
+    if (userPermissions !== '1') {
+      queryParams.push(userId, userId);
+    }
+    
+    const [results] = await dbConnection.execute(query, queryParams);
+    
+    // Debug log to check query results
+    console.log('Query results length:', results.length);
+    
+    // Map results only if data exists, otherwise return empty array
+    const data = results.length > 0 ? results.map(row => ({
+      id: row.id,
+      assigned_to_id: row.assigned_to,
+      assigned_to: row.assigned_username || null,
+      status_id: row.status_id,
+      status: row.status,
+      name: row.name,
+      mobile_number: row.mobile_number,
+      email: row.email,
+      city: row.city,
+      website_type_id: row.website_type_id,
+      industry_type_id: row.industry_type_id,
+      website_type: row.website_type,
+      industry_type: row.industry_type,
+      contact_preference: row.contact_preference,
+      contact_preference_id: row.contact_preference_id || null,
+      preferred_date: row.preferred_date,
+      preferred_time: row.preferred_time,
+      requirements: row.requirements,
+      source_id: row.source_id,
+      lead_source: row.lead_source,
+      checkbox_ids: row.checkbox_ids,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      likelihood_id: row.likelihood_id,
+      followUpCount: row.followUpCount || 0,
+    })) : [];
+    
+    res.json({ status: results.length > 0, data });
+  } catch (err) {
+    console.error('Error fetching leads:', err);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.post('/api/leads', async (req, res) => {
   try {
