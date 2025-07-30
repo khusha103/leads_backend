@@ -303,7 +303,7 @@ app.post('/webhook', async (req, res) => {
 // Start server
 async function startServer() {
   try {
-    // await startSSHTunnel();
+    await startSSHTunnel();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
