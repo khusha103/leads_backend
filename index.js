@@ -1466,7 +1466,7 @@ app.get('/api/leadcounts_user/:userId', async (req, res) => {
     };
 
     res.status(200).json({
-      status: 'success',
+      success: true,
       message: 'Lead counts fetched successfully',
       data: counts,
     });
@@ -1682,7 +1682,8 @@ app.get('/api/leadsources_user/:userId', async (req, res) => {
     }));
 
     res.status(200).json({
-      status: 'success',
+      // status: 'success',
+       success: true,
       message: 'Lead sources fetched successfully',
       data: formattedResults,
     });
@@ -1999,7 +2000,8 @@ app.get('/api/leadsources', async (req, res) => {
     }));
 
     res.status(200).json({
-      status: 'success',
+      // status: 'success',
+       success: true,
       message: 'Lead sources fetched successfully',
       data: formattedResults,
     });
@@ -2288,7 +2290,8 @@ app.get('/api/today-followups', async (req, res) => {
     };
 
     res.status(200).json({
-      status: 'success',
+      // status: 'success',
+       success: true,
       message: "Today's followups fetched successfully",
       data: followups
     });
