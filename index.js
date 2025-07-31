@@ -1,5 +1,4 @@
 
-// //---------------------------------fb leads integration code----------------------------------- 
 const express = require('express');
 const mysql = require('mysql2/promise');
 const { Client } = require('ssh2');
@@ -57,7 +56,7 @@ app.use((req, res, next) => {
 
 // SSH and MySQL configuration
 const sshConfig = {
-  host: process.env.SSH_HOST || '13.233.81.231',
+  host: process.env.SSH_HOST || 'localhost',
   port: parseInt(process.env.SSH_PORT) || 22,
   username: process.env.SSH_USERNAME || 'ubuntu',
   privateKey: fs.readFileSync(path.join(__dirname, process.env.SSH_KEY_PATH || 'config/ssh/salesekarigar.pem'))
@@ -347,27 +346,6 @@ const storage = multer.diskStorage({
   }
 });
 
-// File filter function to check the file types
-// const fileFilter = (req, file, cb) => {
-//   const allowedTypes = [
-//     'application/pdf', 
-//     'application/msword', 
-//     'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 
-//     'application/vnd.ms-excel', 
-//     'image/jpeg', 
-//     'image/png', 
-//     'image/jpg',
-//      "application/zip",
-//      "application/x-zip-compressed",  
-//      "multipart/x-zip" 
-//   ];
-  
-//   if (allowedTypes.includes(file.mimetype)) {
-//     cb(null, true); // Accept the file
-//   } else {
-//     cb(new Error('Invalid file type'), false); // Reject the file
-//   }
-// };
 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = [
