@@ -992,7 +992,8 @@ app.get('/api/recentleads', async (req, res) => {
     }));
 
     res.status(200).json({
-      status: 'success',
+      // status: 'success',
+       success: true,
       message: 'Recent leads fetched successfully',
       data: formattedResults,
     });
