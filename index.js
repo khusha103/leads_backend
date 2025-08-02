@@ -423,7 +423,7 @@ app.post("/api/upload_g", upload.single("file"), async (req, res) => {
 //-------------------------------------add test mode code--------------------------
 
 app.get('/api/mode', (req, res) => {
-  const status = true; 
+  const status = false; 
   console.log("checking",status);
   res.json({ status });
 });
