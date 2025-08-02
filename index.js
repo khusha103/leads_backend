@@ -423,7 +423,7 @@ app.post("/api/upload_g", upload.single("file"), async (req, res) => {
 //-------------------------------------add test mode code--------------------------
 
 app.get('/api/mode', (req, res) => {
-  const status = false; 
+  const status = true; 
   console.log("checking",status);
   res.json({ status });
 });
@@ -845,7 +845,8 @@ app.post('/api/fb_leads_save', async (req, res) => {
 
     await dbConnection.execute(query, values);
 
-    res.status(200).json({ status: 'success', message: 'Lead saved successfully' });
+    // res.status(200).json({ status: 'success', message: 'Lead saved successfully' });
+    res.status(200).json({ message: 'Lead saved successfully' });
   } catch (err) {
     console.error('Error processing webhook:', err);
     res.status(500).json({ error: 'Internal server error' });
