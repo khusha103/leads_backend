@@ -58,7 +58,7 @@ app.get('/api/check', (req, res) => {
 // app.use('/api/groups', groupRoutes);
 
 // Start server
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4444;
 
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
