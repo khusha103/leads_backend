@@ -1,28 +1,32 @@
 const mysql = require('mysql2/promise');
-require('dotenv').config(); // Load environment variables
 
-// Debug log to confirm env variables are loaded
+// Hardcoded MySQL credentials
+const dbConfig = {
+  host: '127.0.0.1',
+  port: 3306,
+  user: 'sales_ekarigar',
+  password: 'sales_ekarigar@2025',
+  database: 'sales_ekarigar'
+};
+
+// Debug log
 console.log('Connecting to MySQL with config:', {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD ? '****' : undefined,
-  database: process.env.DB_NAME,
-  port: process.env.DB_PORT
+  host: dbConfig.host,
+  user: dbConfig.user,
+  password: '****',
+  database: dbConfig.database,
+  port: dbConfig.port
 });
 
-// Create MySQL connection pool
+// Create connection pool
 const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT || 3306,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  ...dbConfig,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
 });
 
-// Gracefully handle app exit
+// Graceful shutdown
 process.on('SIGINT', async () => {
   try {
     await pool.end();
@@ -34,7 +38,7 @@ process.on('SIGINT', async () => {
   }
 });
 
-// Export query function
+// Export query method
 module.exports = {
   query: (...args) => pool.query(...args),
 };
