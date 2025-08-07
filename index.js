@@ -284,7 +284,7 @@ app.post("/webhook", async (req, res) => {
     ];
 
     await dbConnection.execute(query, values);
-    console.log("Lead inserted successfully:", leadData);
+    // console.log("Lead inserted successfully:", leadData);
     res.status(200).json({ status: "success" });
   } catch (err) {
     console.error("Error processing webhook:", err);
@@ -563,7 +563,7 @@ app.post("/api/fb_leads_save", async (req, res) => {
     }
 
     const mappedLead = mapPayloadToLead(payload);
-    console.log("MAPPED DATA", mappedLead);
+    // console.log("MAPPED DATA", mappedLead);
 
     const serviceId = mappedLead.serviceId;
     const assignedUserId = await getAssignedUser(serviceId);
@@ -1970,7 +1970,7 @@ app.get("/api/getleads_wip", async (req, res) => {
 
     query += ` GROUP BY l.id ORDER BY l.id DESC`;
 
-    console.log("Executing query:", query, queryParams);
+    // console.log("Executing query:", query, queryParams);
 
     const [results] = await dbConnection.execute(query, queryParams);
 
@@ -2363,10 +2363,10 @@ app.delete("/api/leads/:lead_id", async (req, res) => {
         deleteFollowupsQuery,
         [lead_id]
       );
-      console.log("Deleted followups count:", followupResult.affectedRows);
+      // console.log("Deleted followups count:", followupResult.affectedRows);
 
       const deleteLeadQuery = `DELETE FROM ekarigar_leads WHERE id = ?`;
-      console.log("Executing delete lead query:", deleteLeadQuery, [lead_id]);
+      // console.log("Executing delete lead query:", deleteLeadQuery, [lead_id]);
 
       const [leadResult] = await dbConnection.execute(deleteLeadQuery, [
         lead_id,
@@ -2425,8 +2425,8 @@ app.post(
         });
       }
 
-      console.log("Follow-up request body:", req.body);
-      console.log("Uploaded file:", file);
+      // console.log("Follow-up request body:", req.body);
+      // console.log("Uploaded file:", file);
 
       if (!lead_id || !description || !medium || !attended_by) {
         return res.status(400).json({
@@ -2462,7 +2462,7 @@ app.post(
         updated_at,
       ];
 
-      console.log("Executing insert followup query:", query, values);
+      // console.log("Executing insert followup query:", query, values);
 
       const [result] = await dbConnection.execute(query, values);
 
@@ -2501,7 +2501,7 @@ app.get("/api/get_followups", async (req, res) => {
       });
     }
 
-    console.log("Fetching followups for lead ID:", leadId);
+    // console.log("Fetching followups for lead ID:", leadId);
 
     const leadQuery = `
       SELECT 
@@ -2553,7 +2553,7 @@ app.get("/api/get_followups", async (req, res) => {
       ORDER BY followups.followup_date DESC
     `;
 
-    console.log("Executing lead query:", leadQuery, [leadId]);
+    // console.log("Executing lead query:", leadQuery, [leadId]);
 
     const [leadResults] = await dbConnection.execute(leadQuery, [leadId]);
 
@@ -2584,7 +2584,7 @@ app.get("/api/get_followups", async (req, res) => {
         : [],
     };
 
-    console.log("Executing followup query:", followUpQuery, [leadId]);
+    // console.log("Executing followup query:", followUpQuery, [leadId]);
 
     const [followUpResults] = await dbConnection.execute(followUpQuery, [
       leadId,
@@ -2675,7 +2675,7 @@ app.post("/api/save-form-data_pause", async (req, res) => {
       updated_at,
     ];
 
-    console.log("Executing insert form data query:", query, values);
+    // console.log("Executing insert form data query:", query, values);
 
     const [result] = await dbConnection.execute(query, values);
 
@@ -2767,7 +2767,7 @@ app.post("/api/save-form-data", async (req, res) => {
         "https://shopify-backend-sand.vercel.app/send_lead_email",
         thirdPartyPayload
       );
-      console.log("3rd party API response:", apiResponse.data);
+      // console.log("3rd party API response:", apiResponse.data);
     } catch (apiErr) {
       console.error("Failed to send data to 3rd-party API:", apiErr);
     }
