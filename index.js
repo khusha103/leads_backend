@@ -8,6 +8,27 @@ const bodyParser = require("body-parser");
 const moment = require("moment-timezone");
 require("dotenv").config();
 
+
+const { S3Client, PutObjectCommand ,ListObjectsV2Command } = require('@aws-sdk/client-s3');
+// const { S3Client, ListObjectsV2Command } = require('@aws-sdk/client-s3');
+// const multer = require('multer');
+// const moment = require('moment-timezone');
+
+// Configure AWS S3 Client
+const s3Client = new S3Client({
+  region: process.env.AWS_REGION || 'ap-south-1',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'AKIA3ISBVQMG557P43VU',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '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'
+  }
+});
+
+const bucketName = process.env.AWS_S3_BUCKET_NAME || 'sales-ekarigar-bucket';
+
+// Configure multer for memory storage
+// const upload = multer({ storage: multer.memoryStorage() });
+
+
 const app = express();
 const PORT = process.env.PORT || 4444;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "12345";
@@ -77,7 +98,7 @@ const fb_serviceMap = {
 const fb_industryMap = {
   "E-commerce": 1,
   "Retail and Consumer Goods": 1,
-  Automotive: 2,
+  "Automotive": 2,
   Construction: 3,
   Consulting: 4,
   "Education and Training": 5,
@@ -179,45 +200,7 @@ const mapPayloadToLead = (payload) => {
 
 let dbConnection = null;
 
-// async function startSSHTunnel() {
-//   const ssh = new Client();
 
-//   return new Promise((resolve, reject) => {
-//     ssh
-//       .on("ready", () => {
-//         console.log("SSH connection established");
-//         ssh.forwardOut(
-//           "127.0.0.1",
-//           3307,
-//           "127.0.0.1",
-//           3306,
-//           async (err, stream) => {
-//             if (err) {
-//               console.error("SSH forwarding error:", err);
-//               return reject(err);
-//             }
-
-//             try {
-//               dbConnection = await mysql.createConnection({
-//                 ...dbConfig,
-//                 stream,
-//               });
-//               console.log("Connected to MySQL database via SSH tunnel");
-//               resolve(dbConnection);
-//             } catch (dbErr) {
-//               console.error("MySQL connection error:", dbErr);
-//               reject(dbErr);
-//             }
-//           }
-//         );
-//       })
-//       .on("error", (err) => {
-//         console.error("SSH connection error:", err);
-//         reject(err);
-//       })
-//       .connect(sshConfig);
-//   });
-// }
 
 const connectToDb = async () => {
   try {
@@ -474,30 +457,30 @@ async function mapFormData(formData) {
   return mappedData;
 }
 
-async function getAssignedUser(serviceId) {
-  try {
-    if (!dbConnection) {
-      throw new Error("Database connection not established");
-    }
+// async function getAssignedUser(serviceId) {
+//   try {
+//     if (!dbConnection) {
+//       throw new Error("Database connection not established");
+//     }
 
-    const query = `
-      SELECT id
-      FROM ekarigar_users
-      WHERE FIND_IN_SET(?, assigned_services) > 0
-      AND delete_status = '0'
-      LIMIT 1
-    `;
-    const [rows] = await dbConnection.execute(query, [serviceId]);
+//     const query = `
+//       SELECT id
+//       FROM ekarigar_users
+//       WHERE FIND_IN_SET(?, assigned_services) > 0
+//       AND delete_status = '0'
+//       LIMIT 1
+//     `;
+//     const [rows] = await dbConnection.execute(query, [serviceId]);
 
-    if (rows.length > 0) {
-      return rows[0].id;
-    }
-    return 1;
-  } catch (err) {
-    console.error("Error fetching assigned user:", err);
-    throw err;
-  }
-}
+//     if (rows.length > 0) {
+//       return rows[0].id;
+//     }
+//     return 1;
+//   } catch (err) {
+//     console.error("Error fetching assigned user:", err);
+//     throw err;
+//   }
+// }
 
 app.all("/api/form", async (req, res) => {
   try {
@@ -1159,6 +1142,9 @@ app.get("/api/today-followups", async (req, res) => {
   }
 });
 
+
+//-------pause------
+
 app.post("/api/login", async (req, res) => {
   try {
     if (!dbConnection) {
@@ -1251,22 +1237,45 @@ app.post("/api/transfer_wpforms_entries", async (req, res) => {
       return d;
     };
 
+    // const getAssignedUser = async (serviceId) => {
+    //   try {
+    //     const query = `
+    //       SELECT id
+    //       FROM ekarigar_users
+    //       WHERE FIND_IN_SET(?, assigned_services) > 0
+    //       AND delete_status = '0'  
+    //       LIMIT 1
+    //     `;
+    //     const [rows] = await dbConnection.execute(query, [serviceId]);
+    //     return rows.length > 0 ? rows[0].id : 1;
+    //   } catch (err) {
+    //     console.error("Error fetching assigned user:", err);
+    //     throw err;
+    //   }
+    // };
+
     const getAssignedUser = async (serviceId) => {
-      try {
-        const query = `
-          SELECT id
-          FROM ekarigar_users
-          WHERE FIND_IN_SET(?, assigned_services) > 0
-          AND delete_status = '0'  
-          LIMIT 1
-        `;
-        const [rows] = await dbConnection.execute(query, [serviceId]);
-        return rows.length > 0 ? rows[0].id : 1;
-      } catch (err) {
-        console.error("Error fetching assigned user:", err);
-        throw err;
-      }
-    };
+  try {
+    // Validate serviceId
+    if (serviceId === undefined) {
+      console.warn("serviceId is undefined, returning default user ID");
+      return 1; // Or handle differently based on your requirements
+    }
+
+    const query = `
+      SELECT id
+      FROM ekarigar_users
+      WHERE FIND_IN_SET(?, assigned_services) > 0
+      AND delete_status = '0'
+      LIMIT 1
+    `;
+    const [rows] = await dbConnection.execute(query, [serviceId]);
+    return rows.length > 0 ? rows[0].id : 1;
+  } catch (err) {
+    console.error("Error fetching assigned user:", err);
+    throw err;
+  }
+};
 
     const leadInsertPromises = results.map(async (row) => {
       const fields = JSON.parse(row.fields);
@@ -1341,62 +1350,7 @@ app.post("/api/transfer_wpforms_entries", async (req, res) => {
   }
 });
 
-app.post("/login", async (req, res) => {
-  try {
-    if (!dbConnection) {
-      return res
-        .status(500)
-        .json({ error: "Database connection not established" });
-    }
 
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res
-        .status(400)
-        .json({ error: "Username/Email and password are required" });
-    }
-
-    const query = `
-      SELECT id, username, email 
-      FROM ekarigar_users 
-      WHERE (username = ? OR email = ?) 
-        AND password = ? 
-        AND delete_status = '0'
-    `;
-    const [rows] = await dbConnection.execute(query, [
-      username,
-      username,
-      password,
-    ]);
-
-    if (rows.length === 0) {
-      return res
-        .status(401)
-        .json({ error: "Invalid username/email or password" });
-    }
-
-    const kolkataTimestamp = moment()
-      .tz("Asia/Kolkata")
-      .format("YYYY-MM-DD HH:mm:ss");
-
-    const updateQuery = `
-      UPDATE ekarigar_users 
-      SET last_login = ? 
-      WHERE id = ?
-    `;
-    await dbConnection.execute(updateQuery, [kolkataTimestamp, rows[0].id]);
-
-    res.status(200).json({
-      status: "success",
-      message: "Login successful",
-      data: { user: rows[0], last_login: kolkataTimestamp },
-    });
-  } catch (err) {
-    console.error("Error during login:", err);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
 
 app.get("/api/checkbox-options", async (req, res) => {
   try {
@@ -2247,28 +2201,57 @@ app.put("/api/update_leads", async (req, res) => {
 
     const updatedAt = moment.tz("Asia/Kolkata").format("YYYY-MM-DD HH:mm:ss");
 
+    // async function getAssignedUser(serviceId) {
+    //   try {
+    //     const query = `
+    //       SELECT id
+    //       FROM ekarigar_users
+    //       WHERE FIND_IN_SET(?, assigned_services) > 0
+    //       AND delete_status = '0'
+    //       LIMIT 1
+    //     `;
+
+    //     const [results] = await dbConnection.execute(query, [serviceId]);
+
+    //     if (results.length > 0) {
+    //       return results[0].id;
+    //     } else {
+    //       return 1;
+    //     }
+    //   } catch (err) {
+    //     console.error("Error fetching assigned user:", err);
+    //     throw err;
+    //   }
+    // }
+
     async function getAssignedUser(serviceId) {
-      try {
-        const query = `
-          SELECT id
-          FROM ekarigar_users
-          WHERE FIND_IN_SET(?, assigned_services) > 0
-          AND delete_status = '0'
-          LIMIT 1
-        `;
-
-        const [results] = await dbConnection.execute(query, [serviceId]);
-
-        if (results.length > 0) {
-          return results[0].id;
-        } else {
-          return 1;
-        }
-      } catch (err) {
-        console.error("Error fetching assigned user:", err);
-        throw err;
-      }
+  try {
+    // Validate serviceId
+    if (serviceId === undefined) {
+      console.warn("serviceId is undefined, returning default user ID");
+      return 1; // Consistent with your default behavior
     }
+
+    const query = `
+      SELECT id
+      FROM ekarigar_users
+      WHERE FIND_IN_SET(?, assigned_services) > 0
+      AND delete_status = '0'
+      LIMIT 1
+    `;
+
+    const [results] = await dbConnection.execute(query, [serviceId]);
+
+    if (results.length > 0) {
+      return results[0].id;
+    } else {
+      return 1;
+    }
+  } catch (err) {
+    console.error(`Error fetching assigned user for serviceId=${serviceId}:`, err);
+    throw err;
+  }
+}
 
     const assignedUser = await getAssignedUser(lead.website_type_id);
 
@@ -2402,9 +2385,93 @@ app.delete("/api/leads/:lead_id", async (req, res) => {
   }
 });
 
+// ---pause---
+
+// app.post(
+//   "/api/saveFollowUp",
+//   upload.single("followup_doc"),
+//   async (req, res) => {
+//     try {
+//       const {
+//         lead_id,
+//         description,
+//         medium,
+//         followup_date,
+//         attended_by,
+//         assign_to,
+//         followup_doc_description,
+//       } = req.body;
+//       const file = req.file;
+
+//       if (!dbConnection) {
+//         return res.status(500).json({
+//           status: false,
+//           message: "Database connection not established",
+//         });
+//       }
+
+//       // console.log("Follow-up request body:", req.body);
+//       // console.log("Uploaded file:", file);
+
+//       if (!lead_id || !description || !medium || !attended_by) {
+//         return res.status(400).json({
+//           status: false,
+//           message: "Missing required fields",
+//         });
+//       }
+
+//       let filePath = null;
+//       if (file) {
+//         filePath = `/uploads/${file.filename}`;
+//       }
+
+//       const created_at = moment
+//         .tz("Asia/Kolkata")
+//         .format("YYYY-MM-DD HH:mm:ss");
+//       const updated_at = created_at;
+
+//       const query = `
+//       INSERT INTO ekarigar_followups (lead_id, description, medium, attended_by, followup_doc_description, followup_doc, followup_date, created_at, updated_at)
+//       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+//     `;
+
+//       const values = [
+//         lead_id,
+//         description,
+//         medium,
+//         attended_by,
+//         followup_doc_description,
+//         filePath,
+//         followup_date,
+//         created_at,
+//         updated_at,
+//       ];
+
+//       // console.log("Executing insert followup query:", query, values);
+
+//       const [result] = await dbConnection.execute(query, values);
+
+//       res.status(200).json({
+//         status: true,
+//         message: "Follow-up saved successfully",
+//         id: result.insertId,
+//       });
+//     } catch (error) {
+//       console.error("Error in saveFollowUp API:", error);
+//       res.status(500).json({
+//         status: false,
+//         message: "Internal server error",
+//         error:
+//           process.env.NODE_ENV === "development" ? error.message : undefined,
+//       });
+//     }
+//   }
+// );
+
+
 app.post(
-  "/api/saveFollowUp",
-  upload.single("followup_doc"),
+  '/api/saveFollowUp',
+  upload.single('followup_doc'),
   async (req, res) => {
     try {
       const {
@@ -2421,34 +2488,48 @@ app.post(
       if (!dbConnection) {
         return res.status(500).json({
           status: false,
-          message: "Database connection not established",
+          message: 'Database connection not established',
         });
       }
-
-      // console.log("Follow-up request body:", req.body);
-      // console.log("Uploaded file:", file);
 
       if (!lead_id || !description || !medium || !attended_by) {
         return res.status(400).json({
           status: false,
-          message: "Missing required fields",
+          message: 'Missing required fields',
         });
       }
 
       let filePath = null;
       if (file) {
-        filePath = `/uploads/${file.filename}`;
+        // Generate unique filename
+        const fileExtension = file.originalname.split('.').pop();
+        const fileName = `followups/${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExtension}`;
+
+        // S3 upload parameters
+        const params = {
+          Bucket: bucketName,
+          Key: fileName,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+          // Optional: Set ACL to public-read if needed
+          // ACL: 'public-read'
+        };
+
+        // Upload to S3
+        const command = new PutObjectCommand(params);
+        await s3Client.send(command);
+        filePath = `https://${bucketName}.s3.${process.env.AWS_REGION || 'ap-south-1'}.amazonaws.com/${fileName}`;
       }
 
       const created_at = moment
-        .tz("Asia/Kolkata")
-        .format("YYYY-MM-DD HH:mm:ss");
+        .tz('Asia/Kolkata')
+        .format('YYYY-MM-DD HH:mm:ss');
       const updated_at = created_at;
 
       const query = `
-      INSERT INTO ekarigar_followups (lead_id, description, medium, attended_by, followup_doc_description, followup_doc, followup_date, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+        INSERT INTO ekarigar_followups (lead_id, description, medium, attended_by, followup_doc_description, followup_doc, followup_date, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
 
       const values = [
         lead_id,
@@ -2462,26 +2543,44 @@ app.post(
         updated_at,
       ];
 
-      // console.log("Executing insert followup query:", query, values);
-
       const [result] = await dbConnection.execute(query, values);
 
       res.status(200).json({
         status: true,
-        message: "Follow-up saved successfully",
+        message: 'Follow-up saved successfully',
         id: result.insertId,
       });
     } catch (error) {
-      console.error("Error in saveFollowUp API:", error);
+      console.error('Error in saveFollowUp API:', error);
       res.status(500).json({
         status: false,
-        message: "Internal server error",
-        error:
-          process.env.NODE_ENV === "development" ? error.message : undefined,
+        message: 'Internal server error',
+        error: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
   }
 );
+
+app.get('/api/listS3Files', async (req, res) => {
+  try {
+    const command = new ListObjectsV2Command({
+      Bucket: process.env.AWS_S3_BUCKET_NAME || 'sales-ekarigar-bucket',
+      Prefix: 'followups/'
+    });
+    const data = await s3Client.send(command);
+    res.status(200).json({
+      status: true,
+      files: data.Contents || []
+    });
+  } catch (error) {
+    console.error('Error listing S3 files:', error);
+    res.status(500).json({
+      status: false,
+      message: 'Failed to list S3 files',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+});
 
 app.get("/api/get_followups", async (req, res) => {
   try {

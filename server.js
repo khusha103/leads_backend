@@ -1,11 +1,18 @@
 const express = require('express');
 const authRoutes = require('./routes/authRoutes');
+const leadRoutes = require('./routes/leadRoutes');
+const fileRoutes = require('./routes/fileRoutes');
+const optionsRoutes = require('./routes/optionsRoutes');
+require('dotenv').config();
 
 const app = express();
 app.use(express.json());
 
 // Use routes
 app.use('/api', authRoutes);
+app.use('/api', fileRoutes);
+app.use('/api', optionsRoutes);
+app.use('/webhook', leadRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
