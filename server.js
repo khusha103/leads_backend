@@ -1,18 +1,16 @@
 const express = require('express');
-const db = require('./config/db'); // Adjust path as needed
+const authRoutes = require('./routes/authRoutes');
 
 const app = express();
 app.use(express.json());
 
-// API to fetch users
-app.get('/api/users', async (req, res) => {
-  try {
-    const [rows] = await db.query('SELECT * FROM ekarigar_users');
-    res.status(200).json(rows);
-  } catch (err) {
-    console.error('Error fetching users:', err.message);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+// Use routes
+app.use('/api', authRoutes);
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
 });
 
 // Start server
