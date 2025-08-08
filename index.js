@@ -457,30 +457,30 @@ async function mapFormData(formData) {
   return mappedData;
 }
 
-// async function getAssignedUser(serviceId) {
-//   try {
-//     if (!dbConnection) {
-//       throw new Error("Database connection not established");
-//     }
+async function getAssignedUser(serviceId) {
+  try {
+    if (!dbConnection) {
+      throw new Error("Database connection not established");
+    }
 
-//     const query = `
-//       SELECT id
-//       FROM ekarigar_users
-//       WHERE FIND_IN_SET(?, assigned_services) > 0
-//       AND delete_status = '0'
-//       LIMIT 1
-//     `;
-//     const [rows] = await dbConnection.execute(query, [serviceId]);
+    const query = `
+      SELECT id
+      FROM ekarigar_users
+      WHERE FIND_IN_SET(?, assigned_services) > 0
+      AND delete_status = '0'
+      LIMIT 1
+    `;
+    const [rows] = await dbConnection.execute(query, [serviceId]);
 
-//     if (rows.length > 0) {
-//       return rows[0].id;
-//     }
-//     return 1;
-//   } catch (err) {
-//     console.error("Error fetching assigned user:", err);
-//     throw err;
-//   }
-// }
+    if (rows.length > 0) {
+      return rows[0].id;
+    }
+    return 1;
+  } catch (err) {
+    console.error("Error fetching assigned user:", err);
+    throw err;
+  }
+}
 
 app.all("/api/form", async (req, res) => {
   try {
