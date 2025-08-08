@@ -7,6 +7,8 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const moment = require("moment-timezone");
 require("dotenv").config();
+const axios = require('axios');
+
 
 
 const { S3Client, PutObjectCommand ,ListObjectsV2Command } = require('@aws-sdk/client-s3');
@@ -2862,10 +2864,10 @@ app.post("/api/save-form-data", async (req, res) => {
     };
 
     try {
-      const apiResponse = await axios.post(
-        "https://shopify-backend-sand.vercel.app/send_lead_email",
-        thirdPartyPayload
-      );
+      // const apiResponse = await axios.post(
+      //   "https://shopify-backend-sand.vercel.app/send_lead_email",
+      //   thirdPartyPayload
+      // );
       // console.log("3rd party API response:", apiResponse.data);
     } catch (apiErr) {
       console.error("Failed to send data to 3rd-party API:", apiErr);
