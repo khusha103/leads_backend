@@ -309,7 +309,7 @@ const multer = require("multer");
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads_new/");
+    cb(null, "uploads/");
   },
   filename: (req, file, cb) => {
     cb(null, Date.now() + path.extname(file.originalname));
@@ -2422,7 +2422,7 @@ app.delete("/api/leads/:lead_id", async (req, res) => {
 
 //       let filePath = null;
 //       if (file) {
-//         filePath = `/uploads_new/${file.filename}`;
+//         filePath = `/uploads/${file.filename}`;
 //       }
 
 //       const created_at = moment
