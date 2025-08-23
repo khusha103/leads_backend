@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Webcam Recording</title>
+<script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg/dist/ffmpeg.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+	 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script> 
+<style>
+.hide_on_click
+ {
+     display:none;
+ }
+ 
+ 
+#loader-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1000;
+    background: #00000099;
+}
+#loader {
+    display: block;
+    position: relative;
+    left: 50%;
+    top: 50%;
+    width: 150px;
+    height: 150px;
+    margin: -75px 0 0 -75px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #0a587b ;
+    -webkit-animation: spin 2s linear infinite; /* Chrome, Opera 15+, Safari 5+ */
+    animation: spin 2s linear infinite; /* Chrome, Firefox 16+, IE 10+, Opera */
+}
+ 
+#loader:before {
+    content: "";
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    right: 5px;
+    bottom: 5px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #e74c3c;
+    -webkit-animation: spin 3s linear infinite; /* Chrome, Opera 15+, Safari 5+ */
+      animation: spin 3s linear infinite; /* Chrome, Firefox 16+, IE 10+, Opera */
+}
+ 
+#loader:after {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    right: 15px;
+    bottom: 15px;
+    border-radius: 50%;
+    border: 3px solid transparent;
+    border-top-color: #f9c922;
+    -webkit-animation: spin 1.5s linear infinite; /* Chrome, Opera 15+, Safari 5+ */
+      animation: spin 1.5s linear infinite; /* Chrome, Firefox 16+, IE 10+, Opera */
+}
+ 
+@-webkit-keyframes spin {
+    0%   {
+        -webkit-transform: rotate(0deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+        -ms-transform: rotate(0deg);  /* IE 9 */
+        transform: rotate(0deg);  /* Firefox 16+, IE 10+, Opera */
+    }
+    100% {
+        -webkit-transform: rotate(360deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+        -ms-transform: rotate(360deg);  /* IE 9 */
+        transform: rotate(360deg);  /* Firefox 16+, IE 10+, Opera */
+    }
+}
+@keyframes spin {
+    0%   {
+        -webkit-transform: rotate(0deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+        -ms-transform: rotate(0deg);  /* IE 9 */
+        transform: rotate(0deg);  /* Firefox 16+, IE 10+, Opera */
+    }
+    100% {
+        -webkit-transform: rotate(360deg);  /* Chrome, Opera 15+, Safari 3.1+ */
+        -ms-transform: rotate(360deg);  /* IE 9 */
+        transform: rotate(360deg);  /* Firefox 16+, IE 10+, Opera */
+    }
+}
+#hide_on_click
+{
+    display:none;
+}
+body
+{
+        font-family: math;
+    color: white;
+    background: linear-gradient(-90deg, #0a587b 0.00%, #b53855 100.00%);
+}
+.camera_btn
+{
+padding: 10px 20px;
+    /*background-color: white;*/
+    background: linear-gradient(90deg, rgba(51, 92, 155, 1) 0%, rgba(51, 92, 155, 1) 56%, rgba(118, 118, 196, 1) 100%);
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    border: none;
+    font-weight: bolder;
+	
+	}
+    #videoElement {
+    /*  transform: scaleX(-1);  Flip the video horizontally */
+      
+        -webkit-transform: scaleX(-1); /* Flip the video horizontally on Safari */
+  transform: scaleX(-1); /* Flip the video horizontally on other browsers */
+  -webkit-backface-visibility: hidden; /* Improve rendering performance */
+  backface-visibility: hidden; /* Improve rendering performance */
+    }
+	
+	
+.main_div
+{
+background: rgb(81,48,114);
+background: linear-gradient(90deg, rgba(81,48,114,1) 0%, rgba(13,78,98,1) 56%, rgba(184,196,209,1) 100%);
+}
+body{
+	color:white;
+}
+.bg_img
+{
+	 background-image: url("https://ek-reps.com/nyra/images/5513843_286262.png");
+	 background-size: contain;
+}
+.cstm_pad
+{
+	padding-left: 12px;
+}
+.form-control
+{
+background: #B7CEDD;
+    border-color: #707070;
+    margin-top: 10px;
+}
+.btns
+{
+font-size: 14px;
+margin-bottom:8px;
+border-color:#00d5ff00;;
+color:white;
+background: rgb(114,0,0);
+background: linear-gradient(90deg, rgba(114,0,0,1) 0%, rgba(0,0,0,1) 80%, rgba(0,0,0,1) 100%);
+}
+.btn_upload
+{
+font-size: 14px;
+margin-bottom:8px;
+border-color:#00d5ff00;;
+color:white;
+background: rgb(118,118,196);
+background: linear-gradient(90deg, rgba(51,92,155,1) 0%, rgba(51,92,155,1) 56%, rgba(118,118,196,1) 100%);
+}
+.line
+{
+height: 4px !important;
+}
+@font-face {
+  font-family: neuebold;
+  src: url(/video/images/HelveticaNeueBold.otf);
+}
+@font-face {
+  font-family: neuethinbold;
+  src: url(/video/images/HelveticaNeueMedium.otf);
+}
+@font-face {
+  font-family: neuethin;
+  src: url(/video/images/HelveticaNeueRoman.otf);
+}
+@font-face {
+  font-family: neuethinlight;
+  src: url(/video/images/HelveticaNeueLight.otf);
+}
+@font-face {
+  font-family: neueitelic;
+  src: url(/video/images/HelveticaNeueLightItalic.otf);
+}
+
+.form-control:focus
+{
+color:#c5bcbc !important;
+}	
+
+@media only screen and (max-width: 600px) {
+
+  .remove_bg
+  {
+      background: #e9e9e900 !important;
+      border: none !important;
+  }
+  .bg_img
+  {
+   padding-top: 0px !important;
+  }
+  .small_screen_css
+  {
+      text-align: center;
+  }
+  .change_size
+  {
+    float: none !important;
+    width: 45% !important; 
+  }
+  .footer_cls
+  {
+   margin-top: 100% !important;
+  }
+}
+        .filler-word {
+            background-color: red;
+            color: black;
+            font-weight: bold;
+        }
+        .weak-word {
+            background-color: yellow;
+            color: black;
+            font-weight: bold;
+        }
+        
+#result_screen
+{
+   display:none; 
+}
+
+.sml_size
+{
+    font-size: 14px;
+    margin-bottom: 0px;
+    font-family: neuebold;
+}
+.try_btn
+{
+   font-size: 12px;
+    background: linear-gradient(90deg, rgba(43, 181, 232, 1) 0%, rgba(0, 141, 141, 1) 100%);
+    color: white;
+    border-color: #00fff087; 
+    font-family: neuebold;
+}
+.colored {
+  /*accent-color: red;*/
+  width: 100%;
+}
+progress {
+  height: 35px;
+}
+/*.video_bg_img*/
+/*{*/
+/* background-image: url("/video/images/giphy.webp");*/
+/*}*/
+</style>
+</head>
+<body class="main_div">
+
+<!--<div class="container-fluid">-->
+<!--<div class="row">-->
+<!--<div class="col-md-3"></div>-->
+<!--<div align="center" class="col-md-6">-->
+<!--       <video id="videoElement" autoplay muted></video>-->
+<!--</div>-->
+<!-- <div align="center" class="col-md-6 col-12" >-->
+<!--      <div class="embed-responsive embed-responsive-16by9">-->
+<!--        <video id="videoElement" class="embed-responsive-item" autoplay muted style="width:100%"></video>-->
+<!--      </div>-->
+<!-- </div>-->
+<!--<div class="col-md-3"></div>-->
+<!--</div>-->
+<!--</div>-->
+<!--<div align="center">-->
+ 
+<!--  <button class="camera_btn" id="startRecording">Start Recording</button>-->
+<!--  <button class="camera_btn" id="stopRecording" style="display:none;">Stop Recording</button>-->
+<!--</div>-->
+<!--<form id="uploadForm" action="https://ek-reps.com/python/analyze" method="post" enctype="multipart/form-data">-->
+<!--  <input type="file" id="videoFileInput" name="videoFile" accept="video/*" class="file" style="display:none;" >-->
+<!--  <button id="uploadButton" style="display:none;">Upload Video</button>-->
+<!--</form>-->
+<!--	<div class="row">-->
+<!--	    <div class="col-md-12 ">-->
+<!--<div id="loader-wrapper" class="hide_on_click">-->
+<!--    <div id="loader" class="hide_on_click"></div>-->
+<!--</div>-->
+<!--          </div>-->
+<!--    </div>-->
+
+
+
+
+<div style="background: #2B2B53;margin-bottom: 25px;height: 13px;"> </div>      
+<div class="container" id="main_screen">
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom: 12px;">
+		<div style="float:left; padding-top: 10px;">
+            <h5 style="font-family: neuebold;">Welcome!</h5>
+		</div>		
+		<div style="float:right;">
+            <!--<span><img class="img-fluid" src="https://ek-reps.com/nyra/images/Image_setting.png" style="margin-left: 10px;"></span>--><a href="https://ek-reps.com/nyra/"><img class="img-fluid" src="/video/images/Image_log_out.png" style="margin-left: 10px;"></a>
+		</div>		
+
+        </div>
+    </div>
+<div style="border: 1px solid;">
+    <div class="row" style="background: #e9e9e966; margin: 6px;  ">
+		<div class="col-md-12 bg_img" style="text-align:center;     padding-top: 24px;">
+			<div class="row">
+				<div class="col-md-3"></div>
+				 <div class="col-md-6" style="position: relative; top: 42px;">	
+				  <div class="embed-responsive embed-responsive-16by9">
+        <!--<video id="videoElement" class="embed-responsive-item" autoplay muted style="width:100%; background: black; border: 5px solid white;"></video>-->
+        <video id="videoElement" class="embed-responsive-item" autoplay muted playsinline style="width:100%; background: black; border: 5px solid white;"></video>
+      </div>
+				 </div>
+				<div class="col-md-3"></div>
+			</div>	
+	
+			<div class="row">
+				<div class="col-md-2"></div>
+				 <div class="col-md-8 remove_bg"  style="background: #e9e9e966; margin: 6px; border: 6px solid white; border-radius: 26px;  ">	
+				 <div class="row" style="padding-top: 45px;padding-bottom: 40px; align-items: baseline;">
+                    <div class="col-md-12">
+                        
+  <button class="camera_btn" id="startRecording" style="font-family: sans-serif;">Start Recording</button>
+  <button class="camera_btn" id="stopRecording" style="display:none;     font-family: sans-serif;">Stop Recording</button>
+                        
+                    <form id="uploadForm" action="https://ek-reps.com/python/analyze" method="post" enctype="multipart/form-data">
+  <input type="file" id="videoFileInput" name="videoFile" accept="video/*" class="file" style="display:none;" >
+  <button id="uploadButton" style="display:none;">Upload Video</button>
+</form>
+                    </div>
+				 </div>
+				 </div>
+				<div class="col-md-2"></div>
+			</div>
+		<div class="row" style="margin-bottom: 22px;">
+		<!-- <div class="col-md-12"><img class="img-fluid" src="images/logo-new.png" style="width: 20%;float: right;"></div> -->
+		<!--<div class="col-md-12"><img class="img-fluid" src="images/Nyra-logo-black.png" style="width: 20%;float: right;"></div>-->
+		</div>	
+		</div>
+    </div>
+</div>	
+</div>   
+
+                        
+<!-- Result code -->
+
+<div class="container" id="result_screen">
+     <input id="inputId" hidden >
+    <div class="row">
+        <div class="col-md-12" style="margin-bottom: 12px;">
+		<div style="float:left; padding-top: 10px;">
+            <h5 style="font-family: neuebold;">Welcome!</h5>
+		</div>		
+		<div style="float:right;">
+            <!--<span><img class="img-fluid" src="https://ek-reps.com/nyra/images/Image_setting.png" style="margin-left: 10px;"></span>--><a href="https://ek-reps.com/nyra/"><img class="img-fluid" src="/video/images/Image_log_out.png" style="margin-left: 10px;"></a>
+		</div>		
+
+        </div>
+    </div>
+<div style="border: 1px solid;">
+    <div class="row" style="background: #e9e9e966; margin: 6px;">
+		<div class="col-md-12 bg_img" style="text-align:center;     padding-top: 24px;">
+			<!--<div class="row" style="align-items: center;">-->
+			<div class="row" >
+			    <div class="col-md-1"></div>
+				 <div class="col-md-4" style="padding-left: 12px; padding-right: 12px; margin-top: 6px; margin-bottom: 6px;">
+				     <img class="img-fluid loading_image" src="/video/images/giphy.webp" style="margin-left: 10px; height:100%;border: 4px solid white;">
+				     	<video controls class="img-fluid video_bg_img" style="height:100%; border: 4px solid white; display:none" id="myVideo" playsinline>
+                          <source src="" type="video/mp4">
+                          Your browser does not support the video tag.
+                        </video>
+				</div>
+				 <div class="col-md-6 change_setting" style="background: #e9e9e966; margin: 6px;     display: grid;    border: 4px solid white;">
+				    <div class="row" style="align-items: center; padding-top: 26px;  padding-bottom: 25px;">
+				        <div class="col-md-8" style="border-right: 1px dotted white; text-align: left;">
+				           	<h3 class="sml_size" id="week_words">Weak Words: %</h3>
+                        	<progress class="colored weak_word_color" id="weak_words_progress_bar" value="" max="100" ></progress>
+                            <h3 class="sml_size" style="margin-bottom: 0px;" id="filler_words">Filler Words: </h3>
+                        	<progress class="colored filler_word_color" id="filler_words_progress_bar" value="" max="100"></progress>
+                            <h3 class="sml_size" id="concisePercentage">Conciseness Score: %</h3>
+                        	<progress class="colored conciseness_word_color" id="concisePercentage_progress_bar" value="" max="100"></progress>
+                            <h3 class="sml_size">Smiling Percentage: %</h3>
+                        	<progress class="colored smiling_word_color" id="file" value="" max="100" ></progress>
+                        	<h3 id="words_per_minute">Speed:  WPM</h3>
+				        </div>
+				            <div class="col-md-4" style="text-align: center;">
+				            <a href="https://ek-reps.com/python" style="text-decoration: none;"><button class="form-control try_btn" style="font-size: 12px; font-family: neuethinbold;">Let’s Try Again!</button></a>
+				        </div>
+				    </div> 
+				 </div>
+			</div>	
+		    <div class="row remove_css" style="padding-left: 6px;">
+		        <div class="col-md-1"></div>
+				        <div class="col-md-10 change_result_css" style="text-align: left; margin-top: 10px; background: #C12054; padding-top: 12px; padding-bottom: 12px; padding-left: 12px; margin-left: 5px;">
+				            <h4 style="font-family: neuebold;">What You Spoke:</h4>
+				            <p style="font-family: neuethinlight;" id="spokenText"></p>
+				        </div>
+				<div class="col-md-1"></div>        
+				    </div> 
+				    <div class="row remove_css" style="padding-left: 6px;">
+				    <div class="col-md-1"></div>    
+				        <div class="col-md-10 change_result_css" style="text-align: left; margin-top: 10px; background: #6187C1; padding-top: 12px; padding-bottom: 12px; padding-left: 12px; margin-left: 5px;">
+				            <h4 style="color:#FACF5B; font-family: neuebold;" >Suggested Concise Version:</h4>
+				            <p style="font-family: neuethinlight;" id="concisedContent"></p>
+				     <div class="col-md-1"></div> 
+				        </div>
+				    </div> 
+			</div>
+		<div class="row" style="margin-bottom: 22px; margin-top: 22px;">
+		<!-- <div class="col-md-12"><img class="img-fluid" src="https://ek-reps.com/nyra/images/logo-new.png" style="width: 20%;float: right;"></div> -->
+		<div class="col-md-12 small_screen_css"><img class="img-fluid change_size" src="/video/images/logo-new.png" style="width: 10%;float: right;"></div>
+		</div>	
+		</div>
+    </div>
+</div>	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div style="background: #2B2B53; margin-top: 19%;" class="footer_cls">
+<div class="container" >
+    <div class="row">
+        <div class="col-md-12" >
+		<div>
+            <span style="font-size: 12px; font-family: sans-serif;">About NYRA |  KB Articles |  Success Stories |  Terms & Conditions | Support |  Disclaimer |  Privacy Policy |  Blog | Contact for B2B </span>
+		</div>
+        </div>
+    </div>
+ </div>
+</div>
+
+	<div class="row">
+	    <div class="col-md-12 ">
+<div id="loader-wrapper" class="hide_on_click">
+    <div id="loader" class="hide_on_click"></div>
+</div>
+          </div>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    
+
+
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+<script>
+
+        var recognition;
+        var isRecording = false;
+        var finalTranscript = '';  // Variable to store the final transcript
+        var fillerWordCount = 0;
+        var weakWordCount = 0;
+        var wordsPerMinute = 0;
+        
+
+
+
+        // List of filler and weak words
+        var fillerWords = ["um", "uh", "like", "you know", "so", "actually", "basically", "literally", "just", "I mean", "kind of"];
+        var weakWords = ["maybe", "perhaps", "probably", "possibly", "might", "could", "should", "would"];
+
+
+
+  let mediaRecorder;
+  let stream;
+  const videoElement = document.getElementById('videoElement');
+  const startRecordingBtn = document.getElementById('startRecording');
+  const stopRecordingBtn = document.getElementById('stopRecording');
+  const videoFileInput = document.getElementById('videoFileInput');
+  const uploadForm = document.getElementById('uploadForm');
+  const uploadButton = document.getElementById('uploadButton');
+
+  startRecordingBtn.addEventListener('click', startRecording);
+  stopRecordingBtn.addEventListener('click', stopRecording);
+
+  async function startRecording() {
+      
+      
+          if (!isRecording) {
+                recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onstart = function() {
+                    // alert('Speech recognition started');
+                    // console.log('Speech recognition started');
+                    isRecording = true;
+                    startTime = new Date();
+                    finalTranscript = '';  // Reset the transcript when recording starts
+                };
+
+                recognition.onresult = function(event) {
+                    var transcript = event.results[0][0].transcript;
+                    finalTranscript += transcript + ' ';  // Store the result in finalTranscript
+                };
+
+                recognition.onerror = function(event) {
+                    console.log('Error occurred in recognition: ' + event.error);
+                };
+
+                recognition.start();
+            }
+
+     stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    videoElement.srcObject = stream;
+    mediaRecorder = new MediaRecorder(stream);
+    const chunks = [];
+
+    mediaRecorder.ondataavailable = function(e) {
+      chunks.push(e.data);
+    };
+// Main code start 
+
+
+//   mediaRecorder.onstop = async function() {
+//   const blob = new Blob(chunks, { 'type': 'video/mp4' });
+//   const reader = new FileReader();
+//   reader.readAsArrayBuffer(blob);
+//   reader.onloadend = async function() {
+//     const arrayBuffer = reader.result;
+//     const { createFFmpeg } = FFmpeg;
+//     const ffmpeg = createFFmpeg({ log: true });
+//     await ffmpeg.load();
+//     ffmpeg.FS('writeFile', 'input.mp4', new Uint8Array(arrayBuffer));
+//     await ffmpeg.run('-i', 'input.mp4', 'output.mp4');
+//     const data = ffmpeg.FS('readFile', 'output.mp4');
+
+//     // Create a FormData object to send the file to the server
+//     const formData = new FormData();
+//     const timestamp = Date.now();
+//     const filename = `recorded-video-${timestamp}.mp4`;
+//     formData.append('videoFile', new Blob([data.buffer], { type: 'video/mp4' }), filename);
+
+//     // Send the file to the server using fetch
+//     fetch('/upload', {
+//       method: 'POST',
+//       body: formData
+//     })
+//     .then(response => {
+//       // Handle response
+//       console.log('Video uploaded successfully!');
+
+//       video_filename="/video/"+filename;
+// $('#myVideo').attr('src', video_filename).get(0).load();
+
+// $(".img-fluid.loading_image").hide();
+// $("#myVideo").show();
+
+//     })
+//     .catch(error => {
+//       // Handle error
+//       console.error('Error uploading video:', error);
+//     });
+//   };
+// };
+
+// Main code end 
+
+
+// mediaRecorder.onstop = function() {
+//   // Show the loading spinner
+//   $(".img-fluid.loading_image").show();
+//   $("#myVideo").hide();
+
+//   // Combine chunks into a Blob
+//   const blob = new Blob(chunks, { 'type': 'video/mp4' });
+
+//   // Create a Blob URL for the video
+//   const videoURL = URL.createObjectURL(blob);
+
+//   // Set the video source and load it into the player
+//   $('#myVideo').attr('src', videoURL).get(0).load();
+
+//   // Hide the loading spinner and show the video
+//   $(".img-fluid.loading_image").hide();
+//   $("#myVideo").show();
+// };
+
+mediaRecorder.onstop = async function() {
+  // Show the loading spinner
+  $(".img-fluid.loading_image").show();
+  $("#myVideo").hide();
+
+  // Combine chunks into a Blob
+  const blob = new Blob(chunks, { 'type': 'video/mp4' });
+
+  // Create a Blob URL for the video and show it
+  const videoURL = URL.createObjectURL(blob);
+  $('#myVideo').attr('src', videoURL).get(0).load();
+
+  // Hide the loading spinner and show the video
+  $(".img-fluid.loading_image").hide();
+  $("#myVideo").show();
+
+  // Create a FormData object to send the file to the server
+  const formData = new FormData();
+  const timestamp = Date.now();
+  const filename = `recorded-video-${timestamp}.mp4`;
+
+  // Append the video Blob to FormData
+  formData.append('videoFile', blob, filename);
+
+  // Send the file to the server using fetch
+  fetch('/upload', {
+    method: 'POST',
+    body: formData
+  })
+  .then(response => {
+    if (response.ok) {
+      console.log('Video uploaded successfully!');
+      // Optionally update the UI or notify the user of success
+    } else {
+      throw new Error('Failed to upload video');
+    }
+  })
+  .catch(error => {
+    // Handle error
+    console.error('Error uploading video:', error);
+  });
+};
+
+
+
+
+
+// mediaRecorder.onstop = async function() {
+//   // Show the loading spinner
+//   $(".img-fluid.loading_image").show();
+//   $("#myVideo").hide();
+
+//   // Combine chunks into a Blob
+//   const blob = new Blob(chunks, { 'type': 'video/mp4' });
+
+//   // Create a FormData object to send the file to the server
+//   const formData = new FormData();
+//   const timestamp = Date.now();
+//   const filename = `recorded-video-${timestamp}.mp4`;
+
+//   // Append the video Blob to FormData
+//   formData.append('videoFile', blob, filename);
+
+//   // Send the file to the server using fetch
+//   fetch('/upload', {
+//     method: 'POST',
+//     body: formData
+//   })
+//   .then(response => {
+//     if (response.ok) {
+//       console.log('Video uploaded successfully!');
+
+//       // Set the video source and load it into the player
+//       const video_filename = `/video/${filename}`;
+//       $('#myVideo').attr('src', video_filename).get(0).load();
+
+//       // Hide the loading spinner and show the video
+//       $(".img-fluid.loading_image").hide();
+//       $("#myVideo").show();
+//     } else {
+//       throw new Error('Failed to upload video');
+//     }
+//   })
+//   .catch(error => {
+//     // Handle error
+//     console.error('Error uploading video:', error);
+//     $(".img-fluid.loading_image").hide();
+//   });
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// mediaRecorder.onstop = async function() {
+//   const blob = new Blob(chunks, { 'type': 'video/mp4' });
+//   const reader = new FileReader();
+//   reader.readAsArrayBuffer(blob);
+//   reader.onloadend = async function() {
+//     const arrayBuffer = reader.result;
+    
+//     // Initialize FFmpeg
+//     const { createFFmpeg, fetchFile } = FFmpeg;
+//     const ffmpeg = createFFmpeg({ log: true });
+    
+//     await ffmpeg.load();
+    
+//     // Write the input video file to the FFmpeg virtual file system
+//     ffmpeg.FS('writeFile', 'input.mp4', new Uint8Array(arrayBuffer));
+    
+//     // Run FFmpeg to convert the input file to output.mp4
+//     await ffmpeg.run('-i', 'input.mp4', 'output.mp4');
+    
+//     // Read the output video from the FFmpeg virtual file system
+//     const data = ffmpeg.FS('readFile', 'output.mp4');
+    
+//     // Create a Blob from the output video data
+//     const outputBlob = new Blob([data.buffer], { type: 'video/mp4' });
+
+//     // Convert the Blob to a File object
+//     const timestamp = Date.now();
+//     const filename = `converted-video-${timestamp}.mp4`;
+//     const file = new File([outputBlob], filename, { type: 'video/mp4' });
+
+//     // Prepare metadata
+//     const metadata = JSON.stringify({
+//       title: `Converted Video ${timestamp}`,
+//       description: 'This is a converted video uploaded from the web app.'
+//     });
+
+//     // Use multipart/form-data for the request
+//     const JWPLAYER_API_KEY = 'rVR1I4XEr77GUET2o7IdfGInYm5GUVFscEdjV2hCYWxSR1JFNWhUM2MyYldzMWExSlUn'; // Replace with your JWPlayer API key
+//     const JWPLAYER_UPLOAD_URL = 'https://api.jwplayer.com/v2/sites/hONXobN0/media/'; // Replace with your site ID
+
+//     try {
+//       const formData = new FormData();
+//       formData.append('metadata', metadata);  // Append metadata as a plain string
+//       formData.append('file', file);
+
+//       const response = await fetch(JWPLAYER_UPLOAD_URL, {
+//         method: 'POST',
+//         headers: {
+//           'Authorization': `Bearer ${JWPLAYER_API_KEY}`,
+//           // Don't set 'Content-Type' because fetch will automatically set the correct boundary for multipart/form-data
+//         },
+//         body: formData
+//       });
+
+//       // Check if the response is successful
+//       if (!response.ok) {
+//         console.error('Upload failed with status:', response.status);
+//         const errorData = await response.json();
+//         console.error('Error details:', errorData);
+//         return;
+//       }
+
+//       const data = await response.json();
+//       console.log("Full response data:", data);
+
+//       // If successful, handle the uploaded video
+//       if (data && data.id) {
+//         console.log('Video uploaded successfully!');
+//         const jwplayerVideoURL = `https://cdn.jwplayer.com/videos/${data.id}.mp4`;
+//         $('#myVideo').attr('src', jwplayerVideoURL).get(0).load();
+
+//         $(".img-fluid.loading_image").hide();
+//         $("#myVideo").show();
+//       } else {
+//         console.error('Failed to upload video to JWPlayer:', data);
+//       }
+
+//     } catch (error) {
+//       console.error('Error uploading video to JWPlayer:', error);
+//     }
+//   };
+// };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// mediaRecorder.onstop = async function() {
+//   const blob = new Blob(chunks, { type: 'video/mp4' });
+  
+//   // Create a FormData object to send the file to the server
+//   const formData = new FormData();
+//   const timestamp = Date.now();
+//   const filename = `recorded-video-${timestamp}.mp4`;
+//   formData.append('videoFile', blob, filename);
+
+//   // Send the file to the server using fetch
+//   fetch('/upload', {
+//     method: 'POST',
+//     body: formData
+//   })
+//   .then(response => {
+//     // Handle response
+//     console.log('Video uploaded successfully!');
+
+//     // Update video source and display it
+//     const video_filename = `/video/${filename}`;
+//     $('#myVideo').attr('src', video_filename).get(0).load();
+
+//     $(".img-fluid.loading_image").hide();
+//     $("#myVideo").show();
+//   })
+//   .catch(error => {
+//     // Handle error
+//     console.error('Error uploading video:', error);
+//   });
+// };
+
+
+
+    mediaRecorder.start();
+    // startRecordingBtn.disabled = true;
+    // stopRecordingBtn.disabled = false;
+    document.getElementById('startRecording').style.display = 'none'; // To hide
+document.getElementById('stopRecording').style.display = 'inline'; // To show
+  }
+
+  function stopRecording() {
+    //   alert("Click");
+    mediaRecorder.stop();
+        stream.getTracks().forEach(track => track.stop()); // Stop all tracks in the stream
+     $("#loader-wrapper").removeClass("hide_on_click");
+        $("#loader").removeClass("hide_on_click");
+        
+        if (isRecording) {
+                recognition.stop();
+                recognition.onend = function() {
+                    console.log('Speech recognition stopped');
+                    var endTime = new Date();
+                    isRecording = false;
+                    var highlightedText = highlightWords(finalTranscript);
+                    document.getElementById('spokenText').innerHTML = highlightedText;  // Show the highlighted transcript
+                   $('#inputId').val(highlightedText);
+                   $('#inputId').trigger('change');  // Manually trigger the change event
+      
+                var analysisData = analyzeTranscript(finalTranscript, startTime, endTime);
+                // alert('Filler Word Count: ' + analysisData.fillerWordCount + 
+                //       '\nWeak Word Percentage: ' + analysisData.weakWordPercentage.toFixed(2) + '%' + 
+                //       '\nWords per Minute: ' + analysisData.wordsPerMinute.toFixed(2));
+                      
+                      $('#week_words').text('Weak Word Percentage: ' + Math.round(analysisData.weakWordPercentage.toFixed(2)) + '%');
+                      $('#filler_words').text('Filler Word Count: ' + Math.round(analysisData.fillerWordCount));
+                      $('#words_per_minute').text('Speed: ' + Math.round(wordsPerMinute) + ' WPM');
+                      
+              $('#weak_words_progress_bar').val(Math.round(analysisData.weakWordPercentage.toFixed(2)));
+              $('#filler_words_progress_bar').val(Math.round(analysisData.fillerWordCount));
+                      
+        
+
+        
+                };
+            }
+      
+    
+  }
+  
+     function highlightWords(text) {
+            var words = text.split(' ');
+            for (var i = 0; i < words.length; i++) {
+                var word = words[i].toLowerCase();
+                if (fillerWords.includes(word)) {
+                    words[i] = '<span class="filler-word">' + words[i] + '</span>';
+                } else if (weakWords.includes(word)) {
+                    words[i] = '<span class="weak-word">' + words[i] + '</span>';
+                }
+            }
+            return words.join(' ');
+        }
+        
+        function analyzeTranscript(text, startTime, endTime) {
+        var words = text.trim().split(/\s+/);
+        var totalWords = words.length;
+
+
+        // Count filler and weak words
+        for (var i = 0; i < words.length; i++) {
+            var word = words[i].toLowerCase();
+            if (fillerWords.includes(word)) {
+                fillerWordCount++;
+            } else if (weakWords.includes(word)) {
+                weakWordCount++;
+            }
+        }
+
+        // Calculate weak word percentage
+        var weakWordPercentage = (weakWordCount / totalWords) * 100;
+
+        // Calculate time difference in minutes
+        var timeDiffInMinutes = (endTime - startTime) / (1000 * 60);
+
+        // Calculate words per minute
+         wordsPerMinute = totalWords / timeDiffInMinutes;
+
+        return {
+            fillerWordCount: fillerWordCount,
+            weakWordPercentage: weakWordPercentage,
+            wordsPerMinute: wordsPerMinute
+        };
+    }    
+  
+  $(document).ready(function(){
+           $('#inputId').on('change', function(){
+                 var originalContent = $('#spokenText').text();
+            // alert(originalContent);
+            $.ajax({
+                url: 'https://ek-reps.com:8080/api/conciseness', // Endpoint where your server-side code is located
+                type: 'POST',
+                data: JSON.stringify({ content: originalContent }), // Stringify the data
+                contentType: 'application/json', // Set the content type to JSON
+                success: function(response) {
+                    var concised_words = $('#concisedContent').text(response.concised);
+                    highlightWords(response.concised);
+                  var original_words= $('#spokenText').text();
+                    // alert(original_words.length);
+                    // alert(concised_words.length);
+                     var concisePercentage = ((original_words.length - response.concised.length) / original_words.length) * 100;
+                    $('#concisePercentage').text("Conciseness Score: " + Math.round(concisePercentage)+"%");
+                    $('#concisePercentage_progress_bar').val(Math.round(concisePercentage));
+                    // alert(concisePercentage);
+                    
+        document.getElementById('main_screen').style.display = 'none'; // To hide
+        document.getElementById('result_screen').style.display = 'block'; // To show
+         $("#loader-wrapper").addClass("hide_on_click");
+        $("#loader").addClass("hide_on_click");
+                    
+                },
+                error: function() {
+                    alert('Error processing request');
+                }
+            });
+
+
+            });
+            
+//               $('#testing').on('click', function(){
+//                   alert("Hello");
+//                         video_filename="/video/recorded-video-1720578970333.mp4";
+// $('#myVideo').attr('src', video_filename).get(0).load();
+          
+//         });      
+  });
+</script>
+</body>
+</html>

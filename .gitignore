@@ -1,0 +1,25 @@
+# Node modules
+/node_modules
+
+# uploads/
+
+# certificate/
+
+index_pause.js/
+
+nohup.out/
+
+# Logs
+logs
+*.log
+
+# Environment files
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+/config
+
+index_4_august.js
